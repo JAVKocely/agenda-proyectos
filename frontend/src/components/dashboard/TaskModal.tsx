@@ -108,10 +108,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <select
               value={targetProjectId}
               onChange={(e) => setTargetProjectId(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-medium"
             >
               {projects.map((p) => (
-                <option key={p.id} value={p.id}>
+                <option key={p.id} value={p.id} className="bg-white dark:bg-slate-950 text-black dark:text-white">
                   {p.title}
                 </option>
               ))}
@@ -157,12 +157,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-medium"
             >
-              <option value="low">Baja</option>
-              <option value="medium">Media</option>
-              <option value="high">Alta</option>
-              <option value="urgent">Crítica / Urgente</option>
+              <option value="low" className="bg-white dark:bg-slate-950 text-black dark:text-white">Baja</option>
+              <option value="medium" className="bg-white dark:bg-slate-950 text-black dark:text-white">Media</option>
+              <option value="high" className="bg-white dark:bg-slate-950 text-black dark:text-white">Alta</option>
+              <option value="urgent" className="bg-white dark:bg-slate-950 text-black dark:text-white">Crítica / Urgente</option>
             </select>
           </div>
 
@@ -173,12 +173,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-medium"
             >
-              <option value="pending">Pendiente</option>
-              <option value="in_progress">En proceso</option>
-              <option value="stuck">Estancado</option>
-              <option value="completed">Listo</option>
+              <option value="pending" className="bg-white dark:bg-slate-950 text-black dark:text-white">Pendiente</option>
+              <option value="in_progress" className="bg-white dark:bg-slate-950 text-black dark:text-white">En proceso</option>
+              <option value="stuck" className="bg-white dark:bg-slate-950 text-black dark:text-white">Estancado</option>
+              <option value="completed" className="bg-white dark:bg-slate-950 text-black dark:text-white">Listo</option>
             </select>
           </div>
         </div>

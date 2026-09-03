@@ -174,8 +174,31 @@ html.light input,
 html.light textarea,
 html.light select {
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: #000000 !important;
   border-color: #cbd5e1 !important;
+}
+
+/* =========================================================
+   REGLA ESTRICTA: Menús y Selects en Modo Claro
+   TODO texto dentro de un menú desplegable, select y option en NEGRO (#000000)
+   ========================================================= */
+html.light select,
+html.light option,
+html.light select *,
+html.light optgroup {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+html.light select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 html.light input::placeholder,

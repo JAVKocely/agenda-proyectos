@@ -237,10 +237,10 @@ export const AiProjectCreationModal: React.FC<AiProjectCreationModalProps> = ({
             value={architectureType}
             onChange={(e) => setArchitectureType(e.target.value as ArchitectureType)}
             disabled={isGenerating}
-            className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all cursor-pointer font-medium"
+            className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 focus:border-cyan-400 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all cursor-pointer font-semibold"
           >
             {ARCHITECTURE_OPTIONS.map((opt) => (
-              <option key={opt.id} value={opt.id} className="bg-slate-950 text-white">
+              <option key={opt.id} value={opt.id} className="bg-white dark:bg-slate-950 text-black dark:text-white font-medium">
                 {opt.label}
               </option>
             ))}
