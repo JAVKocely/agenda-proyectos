@@ -1,0 +1,31 @@
+# Entornos virtuales y dependencias
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Bases de datos y logs
+*.db
+*.sqlite3
+*.log
+
+# Secretos y variables de entorno
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
