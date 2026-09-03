@@ -17,7 +17,7 @@ import type {
   TaskUpdatePayload,
   UserProfile,
 } from './types/project';
-import { AlertCircle, Loader2, Sparkles, FolderKanban, Plus, Archive, RotateCcw } from 'lucide-react';
+import { AlertCircle, Loader2, FolderKanban, Archive, RotateCcw } from 'lucide-react';
 
 export function App() {
   // Estado del usuario activo (string | null)
@@ -421,67 +421,36 @@ export function App() {
               <p className="text-sm font-medium">Cargando consola de {currentUser === 'meli' ? 'Meli' : 'Jhon'}...</p>
             </div>
           ) : projects.length === 0 ? (
-            /* Estado de Bienvenida cuando no hay tableros en esta consola */
-            <div className="max-w-xl mx-auto my-16 text-center p-8 bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl backdrop-blur-sm">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 p-0.5 mx-auto mb-5 shadow-lg shadow-indigo-500/20">
-                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-                  <FolderKanban className="folder-welcome-icon w-8 h-8 text-indigo-600 dark:text-cyan-400 transition-colors" />
-                </div>
+            /* Marca de Agua Gigante de la Carpeta Minimalista (sin cuadros ni texto) */
+            <div className="h-[75vh] flex items-center justify-center pointer-events-none select-none">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-600/10 via-cyan-500/5 to-transparent blur-3xl pointer-events-none" />
+                <FolderKanban
+                  className="w-72 h-72 sm:w-96 sm:h-96 text-slate-200/50 dark:text-slate-800/40 transition-all duration-300 drop-shadow-2xl"
+                  strokeWidth={0.9}
+                />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">
-                Consola privada de {currentUser === 'meli' ? 'Meli' : currentUser === 'jhon' ? 'Jhon' : currentUser}
-              </h2>
-              <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                Este espacio de trabajo te pertenece exclusivamente a ti. Puedes crear un proyecto completo estructurado con IA o agregar tareas individuales.
-              </p>
-              <div className="flex items-center justify-center gap-3.5">
-                <button
-                  onClick={() => setIsAiModalOpen(true)}
-                  className="btn-proyecto h-11 px-5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/35 hover:shadow-indigo-500/55 border border-transparent cursor-pointer transition-all duration-200 hover:scale-[1.02]"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Crear Proyecto</span>
-                </button>
-                <button
-                  onClick={() => setIsTaskModalOpen(true)}
-                  className="btn-tarea h-11 px-5 rounded-2xl bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white border border-transparent cursor-pointer flex items-center justify-center gap-2 text-sm font-bold shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-200 hover:scale-[1.02] leading-none"
-                >
-                  <Plus className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
-                  <span className="leading-none">Crear Tarea</span>
-                </button>
-              </div>
-
-              {/* Acceso rápido a otras consolas si esta está vacía */}
-              {users.filter((u) => u.id !== currentUser).length > 0 && (
-                <div className="mt-8 pt-5 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
-                  <span>¿Deseas revisar otra consola?</span>
-                  {users
-                    .filter((u) => u.id !== currentUser)
-                    .map((u) => (
-                      <button
-                        key={u.id}
-                        type="button"
-                        onClick={() => handleSelectUser(u.id)}
-                        className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold hover:text-white transition-colors cursor-pointer"
-                      >
-                        Entrar a consola de {u.name} →
-                      </button>
-                    ))}
-                </div>
-              )}
             </div>
-
           ) : !selectedProjectDetail ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
               {isDetailLoading ? (
                 <>
-                  <Loader2 className="w-6 h-6 animate-spin text-indigo-500 mb-2" />
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-2" />
                   <p className="text-xs">Cargando tablero...</p>
                 </>
               ) : (
-                <p className="text-xs">Selecciona un proyecto de la barra lateral</p>
+                <div className="h-[75vh] flex items-center justify-center pointer-events-none select-none">
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-600/10 via-cyan-500/5 to-transparent blur-3xl pointer-events-none" />
+                    <FolderKanban
+                      className="w-72 h-72 sm:w-96 sm:h-96 text-slate-200/50 dark:text-slate-800/40 transition-all duration-300 drop-shadow-2xl"
+                      strokeWidth={0.9}
+                    />
+                  </div>
+                </div>
               )}
             </div>
+
           ) : (
             /* Render de Vistas Dinámicas */
             <div>
