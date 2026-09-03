@@ -212,6 +212,7 @@ export const AiProjectCreationModal: React.FC<AiProjectCreationModalProps> = ({
       title="Agente Organizador IA"
       subtitle="Estructura tableros completos por fases a partir de ideas o especificaciones"
       maxWidth="xl"
+      accent="indigo"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (

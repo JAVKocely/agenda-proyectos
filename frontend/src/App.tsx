@@ -274,14 +274,14 @@ export function App() {
               <div className="flex items-center justify-center gap-3.5">
                 <button
                   onClick={() => setIsAiModalOpen(true)}
-                  className="h-11 px-5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 border border-transparent cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                  className="btn-proyecto h-11 px-5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/35 hover:shadow-indigo-500/55 border border-transparent cursor-pointer transition-all duration-200 hover:scale-[1.02]"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Crear Proyecto</span>
                 </button>
                 <button
                   onClick={() => setIsTaskModalOpen(true)}
-                  className="btn-tarea h-11 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 cursor-pointer flex items-center justify-center gap-2 text-sm font-bold shadow-sm transition-all duration-200 hover:scale-[1.02] leading-none"
+                  className="btn-tarea h-11 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-cyan-500/40 cursor-pointer flex items-center justify-center gap-2 text-sm font-bold shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-200 hover:scale-[1.02] leading-none"
                 >
                   <Plus className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
                   <span className="leading-none">Crear Tarea</span>

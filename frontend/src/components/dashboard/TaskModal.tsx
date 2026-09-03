@@ -91,6 +91,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       onClose={onClose}
       title="Tarea"
       subtitle="Crea y asigna una tarea puntual a tu tablero de trabajo"
+      accent="cyan"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
