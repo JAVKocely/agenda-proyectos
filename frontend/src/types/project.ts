@@ -10,6 +10,7 @@ export interface Task {
   priority: TaskPriority;
   status: TaskStatus;
   group_name?: string | null;
+  estimated_duration?: string | null;
   order: number;
   due_date?: string | null;
   created_at: string;
@@ -56,6 +57,7 @@ export interface TaskCreatePayload {
   priority?: TaskPriority;
   status?: TaskStatus;
   group_name?: string;
+  estimated_duration?: string;
   order?: number;
   due_date?: string;
 }
@@ -66,6 +68,7 @@ export interface TaskUpdatePayload {
   priority?: TaskPriority;
   status?: TaskStatus;
   group_name?: string;
+  estimated_duration?: string;
   order?: number;
   due_date?: string;
 }

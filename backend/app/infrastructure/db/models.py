@@ -70,6 +70,7 @@ class TaskModel(Base):
     status = Column(String(20), nullable=False, default=TaskStatus.PENDING.value)
     order = Column(Integer, nullable=False, default=0)
     group_name = Column(String(100), nullable=True, default="Fase Principal")
+    estimated_duration = Column(String(50), nullable=True, default="1 día")
     due_date = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)

@@ -72,6 +72,7 @@ class ProjectRepository:
                     status=task_info.get("status", TaskStatus.PENDING.value),
                     order=order_val,
                     group_name=task_info.get("group_name", "Fase Principal"),
+                    estimated_duration=task_info.get("estimated_duration", "1 día"),
                     due_date=task_info.get("due_date")
                 )
                 self.db.add(task)

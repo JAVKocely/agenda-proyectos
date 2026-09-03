@@ -40,18 +40,28 @@ class AIPlannerService:
             "user_id": user_id
         }
 
-        # 4. Mapear datos de tareas ordenadas
-        tasks_dict_list = [
-            {
+        # 4. Mapear datos de tareas ordenadas con fechas calculadas y duraciones
+        cumulative_days = 0
+        tasks_dict_list = []
+        for task in plan.tasks:
+            task_days = getattr(task, "estimated_days", 1) or 1
+            cumulative_days += task_days
+            task_due_date = datetime.now(timezone.utc) + timedelta(days=cumulative_days)
+
+            duration_text = getattr(task, "estimated_duration", None)
+            if not duration_text:
+                duration_text = f"{task_days} {'día' if task_days == 1 else 'días'}"
+
+            tasks_dict_list.append({
                 "title": task.title,
                 "description": task.description,
                 "priority": task.priority,
                 "order": task.order,
                 "group_name": getattr(task, "group_name", "Fase 1: Preparación") or "Fase 1: Preparación",
+                "estimated_duration": duration_text,
+                "due_date": task_due_date,
                 "status": "pending"
-            }
-            for task in plan.tasks
-        ]
+            })
 
         # 5. Persistir atómicamente en la base de datos
         created_project = self.project_repo.create(

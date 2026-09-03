@@ -25,6 +25,15 @@ class AITaskPlanSchema(BaseModel):
         description="Secuencia lógica u orden cronológico de ejecución (comenzando en 1)",
         ge=1
     )
+    estimated_duration: str = Field(
+        default="1 día",
+        description="Estimación de duración de ejecución de la tarea (ej: '4 horas', '1 día', '2 días', '1 semana')"
+    )
+    estimated_days: int = Field(
+        default=1,
+        description="Días aproximados para calcular la fecha límite secuencial de esta tarea (mínimo 1)",
+        ge=1
+    )
 
 
 class AIProjectPlanSchema(BaseModel):

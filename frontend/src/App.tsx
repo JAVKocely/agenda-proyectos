@@ -11,9 +11,8 @@ import { projectsApi } from './api/projectsApi';
 import type {
   ProjectSummary,
   ProjectDetail,
-  TaskStatus,
-  TaskPriority,
   TaskCreatePayload,
+  TaskUpdatePayload,
 } from './types/project';
 import { AlertCircle, Loader2, Sparkles, FolderKanban, Plus } from 'lucide-react';
 
@@ -174,7 +173,7 @@ export function App() {
 
   const handleUpdateTask = async (
     taskId: string,
-    payload: { status?: TaskStatus; priority?: TaskPriority; title?: string }
+    payload: TaskUpdatePayload
   ) => {
     await projectsApi.updateTask(taskId, payload);
     if (selectedProjectId) {

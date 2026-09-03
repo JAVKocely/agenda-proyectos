@@ -6,6 +6,8 @@ import {
   Trash2,
   Calendar,
   User,
+  Check,
+  Clock,
 } from 'lucide-react';
 import type {
   Task,
@@ -19,7 +21,16 @@ import { formatDate } from '../../utils/dateUtils';
 
 interface MainTableProps {
   tasks: Task[];
-  onUpdateTask: (taskId: string, payload: { status?: TaskStatus; priority?: TaskPriority; title?: string }) => void;
+  onUpdateTask: (
+    taskId: string,
+    payload: {
+      status?: TaskStatus;
+      priority?: TaskPriority;
+      title?: string;
+      due_date?: string;
+      estimated_duration?: string;
+    }
+  ) => void;
   onDeleteTask: (taskId: string) => void;
   onAddTask: (payload: TaskCreatePayload) => void;
 }
@@ -100,6 +111,21 @@ export const MainTable: React.FC<MainTableProps> = ({
     setEditingTaskId(null);
   };
 
+  const [editingDurationId, setEditingDurationId] = useState<string | null>(null);
+  const [editingDurationVal, setEditingDurationVal] = useState<string>('');
+
+  const startEditDuration = (task: Task) => {
+    setEditingDurationId(task.id);
+    setEditingDurationVal(task.estimated_duration || '1 día');
+  };
+
+  const saveEditDuration = (taskId: string) => {
+    if (editingDurationVal.trim()) {
+      onUpdateTask(taskId, { estimated_duration: editingDurationVal.trim() });
+    }
+    setEditingDurationId(null);
+  };
+
   return (
     <div className="space-y-8 pb-12">
       {groups.map((group) => {
@@ -160,13 +186,14 @@ export const MainTable: React.FC<MainTableProps> = ({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800/80 text-[11px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-950/40">
-                      <th className="w-10 px-3 py-2.5 text-center">#</th>
-                      <th className="px-4 py-2.5 min-w-[280px]">Elemento / Tarea</th>
-                      <th className="w-28 px-3 py-2.5 text-center">Responsable</th>
-                      <th className="w-36 px-3 py-2.5 text-center">Estado</th>
-                      <th className="w-32 px-3 py-2.5 text-center">Prioridad</th>
+                      <th className="w-14 px-2 py-2.5 text-center">#</th>
+                      <th className="px-4 py-2.5 min-w-[260px]">Elemento / Tarea</th>
+                      <th className="w-24 px-3 py-2.5 text-center">Responsable</th>
+                      <th className="w-32 px-3 py-2.5 text-center">Estado</th>
+                      <th className="w-28 px-3 py-2.5 text-center">Prioridad</th>
+                      <th className="w-28 px-3 py-2.5 text-center">Duración</th>
                       <th className="w-32 px-3 py-2.5 text-center">Fecha Límite</th>
-                      <th className="w-12 px-2 py-2.5 text-center"></th>
+                      <th className="w-10 px-2 py-2.5 text-center"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50 text-xs">
@@ -178,12 +205,30 @@ export const MainTable: React.FC<MainTableProps> = ({
                           key={task.id}
                           className="group/row bg-white dark:bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                         >
-                          {/* Borde de color de grupo e índice */}
+                          {/* Borde de color de grupo, checkbox para chequear y número de casilla */}
                           <td
-                            className="px-3 py-2.5 text-center text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold relative"
+                            className="px-2 py-2.5 text-center text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold relative"
                             style={{ borderLeft: `4px solid ${group.color}` }}
                           >
-                            {rowIdx + 1}
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  onUpdateTask(task.id, {
+                                    status: task.status === 'completed' ? 'pending' : 'completed',
+                                  })
+                                }
+                                className={`w-4 h-4 rounded-md flex items-center justify-center transition-all cursor-pointer border ${
+                                  task.status === 'completed'
+                                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
+                                    : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-emerald-500 hover:scale-105'
+                                }`}
+                                title={task.status === 'completed' ? 'Marcar como pendiente' : 'Chequear / Marcar como completada'}
+                              >
+                                {task.status === 'completed' && <Check className="w-3 h-3 stroke-[3]" />}
+                              </button>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{rowIdx + 1}</span>
+                            </div>
                           </td>
 
                           {/* Título de la tarea con edición inline */}
@@ -243,12 +288,50 @@ export const MainTable: React.FC<MainTableProps> = ({
                             />
                           </td>
 
-                          {/* Fecha */}
+                          {/* Celda de Duración de Ejecución (editable al hacer clic) */}
+                          <td className="px-3 py-2.5 text-center text-slate-700 dark:text-slate-300 text-[11px] font-medium">
+                            {editingDurationId === task.id ? (
+                              <input
+                                autoFocus
+                                type="text"
+                                value={editingDurationVal}
+                                onChange={(e) => setEditingDurationVal(e.target.value)}
+                                onBlur={() => saveEditDuration(task.id)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveEditDuration(task.id);
+                                  if (e.key === 'Escape') setEditingDurationId(null);
+                                }}
+                                className="w-20 bg-white dark:bg-slate-950 border border-cyan-500 rounded px-2 py-0.5 text-xs text-center text-slate-900 dark:text-white outline-none font-medium shadow-sm"
+                              />
+                            ) : (
+                              <div
+                                onClick={() => startEditDuration(task)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 cursor-pointer transition-colors text-slate-700 dark:text-slate-300"
+                                title="Haz clic para editar la duración"
+                              >
+                                <Clock className="w-3 h-3 text-cyan-500 dark:text-cyan-400" />
+                                <span className="truncate max-w-[80px]">{task.estimated_duration || '1 día'}</span>
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Fecha Límite interactiva con selector rápido */}
                           <td className="px-3 py-2.5 text-center text-slate-700 dark:text-slate-400 text-[11px] whitespace-nowrap font-medium">
-                            <span className="inline-flex items-center gap-1">
-                              <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-                              {formatDate(task.due_date)}
-                            </span>
+                            <label className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 cursor-pointer transition-all relative group/date">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/date:text-indigo-500" />
+                              <span>{formatDate(task.due_date)}</span>
+                              <input
+                                type="date"
+                                value={task.due_date ? task.due_date.substring(0, 10) : ''}
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    onUpdateTask(task.id, { due_date: new Date(`${e.target.value}T12:00:00Z`).toISOString() });
+                                  }
+                                }}
+                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                title="Haz clic para cambiar la fecha límite"
+                              />
+                            </label>
                           </td>
 
                           {/* Acciones */}
@@ -273,7 +356,7 @@ export const MainTable: React.FC<MainTableProps> = ({
                       >
                         <Plus className="w-3.5 h-3.5 mx-auto text-slate-400" />
                       </td>
-                      <td colSpan={6} className="px-4 py-2">
+                      <td colSpan={7} className="px-4 py-2">
                         <input
                           type="text"
                           value={newRowTitles[group.name] || ''}
@@ -306,8 +389,9 @@ export const MainTable: React.FC<MainTableProps> = ({
                         {total} elementos ({doneCount} completados - {Math.round(donePct)}%)
                       </td>
                       <td></td>
+                      <td></td>
                       {/* Barra de progreso multicolor de Monday */}
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2" colSpan={2}>
                         <div className="w-full h-3 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 flex shadow-inner">
                           {donePct > 0 && (
                             <div

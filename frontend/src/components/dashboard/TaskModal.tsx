@@ -28,6 +28,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [groupName, setGroupName] = useState('General');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [status, setStatus] = useState<TaskStatus>('pending');
+  const [estimatedDuration, setEstimatedDuration] = useState('1 día');
   const [dueDate, setDueDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +59,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         group_name: groupName.trim() || 'General',
         priority,
         status,
+        estimated_duration: estimatedDuration.trim() || '1 día',
         due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
       };
 
@@ -198,17 +200,32 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           />
         </div>
 
-        {/* Fecha Límite */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-            Fecha Límite (Opcional)
-          </label>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          />
+        {/* Duración y Fecha Límite */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              Duración de Ejecución
+            </label>
+            <input
+              type="text"
+              value={estimatedDuration}
+              onChange={(e) => setEstimatedDuration(e.target.value)}
+              placeholder="Ej: 4 horas, 1 día, 2 días..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              Fecha Límite (Opcional)
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
         </div>
 
         {/* Botones de acción */}

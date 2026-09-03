@@ -28,6 +28,7 @@ def run_auto_migrations():
             if "postgres" in engine.url.drivername:
                 conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS user_id VARCHAR(50) DEFAULT 'meli';"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects (user_id);"))
+                conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS estimated_duration VARCHAR(50) DEFAULT '1 día';"))
                 conn.execute(text("""
                     CREATE TABLE IF NOT EXISTS users (
                         id VARCHAR(50) PRIMARY KEY,
@@ -43,13 +44,17 @@ def run_auto_migrations():
                         ('jhon', 'JHON', 'cyan')
                     ON CONFLICT (id) DO NOTHING;
                 """))
-                logger.info("Migración automática: columna user_id y tabla users verificadas en PostgreSQL.")
+                logger.info("Migración automática: columna user_id, tasks.estimated_duration y tabla users verificadas en PostgreSQL.")
             else:
                 # Para SQLite local
                 try:
                     conn.execute(text("ALTER TABLE projects ADD COLUMN user_id VARCHAR(50) DEFAULT 'meli';"))
                 except Exception:
                     pass  # Columna ya existe
+                try:
+                    conn.execute(text("ALTER TABLE tasks ADD COLUMN estimated_duration VARCHAR(50) DEFAULT '1 día';"))
+                except Exception:
+                    pass
                 try:
                     conn.execute(text("""
                         CREATE TABLE IF NOT EXISTS users (
