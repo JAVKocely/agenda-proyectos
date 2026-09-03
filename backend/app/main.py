@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
@@ -19,66 +20,63 @@ logger = logging.getLogger(__name__)
 
 def run_auto_migrations():
     """
-    Asegura que las tablas y columnas añadidas recientemente (como user_id y la tabla users)
-    existan en la base de datos (PostgreSQL/SQLite) sin necesidad de migraciones manuales.
+    Asegura que las tablas y columnas añadidas recientemente (como user_id, tasks.assigned_to, etc.)
+    existan en la base de datos de forma independiente y tolerante a fallos.
     """
-    try:
-        with engine.begin() as conn:
-            # Para PostgreSQL (Neon)
-            if "postgres" in engine.url.drivername:
-                conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS user_id VARCHAR(50) DEFAULT 'meli';"))
-                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects (user_id);"))
-                conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS estimated_duration VARCHAR(50) DEFAULT '1 día';"))
-                conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assigned_to VARCHAR(50);"))
-                conn.execute(text("""
-                    CREATE TABLE IF NOT EXISTS users (
-                        id VARCHAR(50) PRIMARY KEY,
-                        name VARCHAR(100) NOT NULL,
-                        color VARCHAR(50) DEFAULT 'indigo',
-                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-                    );
-                """))
-                conn.execute(text("""
-                    INSERT INTO users (id, name, color)
-                    VALUES 
-                        ('meli', 'MELI', 'fuchsia'),
-                        ('jhon', 'JHON', 'cyan')
-                    ON CONFLICT (id) DO NOTHING;
-                """))
-                logger.info("Migración automática: columna user_id, tasks.estimated_duration, tasks.assigned_to y tabla users verificadas en PostgreSQL.")
-            else:
-                # Para SQLite local
-                try:
-                    conn.execute(text("ALTER TABLE projects ADD COLUMN user_id VARCHAR(50) DEFAULT 'meli';"))
-                except Exception:
-                    pass  # Columna ya existe
-                try:
-                    conn.execute(text("ALTER TABLE tasks ADD COLUMN estimated_duration VARCHAR(50) DEFAULT '1 día';"))
-                except Exception:
-                    pass
-                try:
-                    conn.execute(text("ALTER TABLE tasks ADD COLUMN assigned_to VARCHAR(50);"))
-                except Exception:
-                    pass
-                try:
-                    conn.execute(text("""
-                        CREATE TABLE IF NOT EXISTS users (
-                            id VARCHAR(50) PRIMARY KEY,
-                            name VARCHAR(100) NOT NULL,
-                            color VARCHAR(50) DEFAULT 'indigo',
-                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                        );
-                    """))
-                    conn.execute(text("""
-                        INSERT OR IGNORE INTO users (id, name, color)
-                        VALUES 
-                            ('meli', 'MELI', 'fuchsia'),
-                            ('jhon', 'JHON', 'cyan');
-                    """))
-                except Exception:
-                    pass
-    except Exception as e:
-        logger.error("Error al verificar/migrar columnas y tablas de base de datos: %s", e)
+    is_postgres = "postgres" in engine.url.drivername
+
+    if is_postgres:
+        statements = [
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS user_id VARCHAR(50) DEFAULT 'meli';",
+            "CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects (user_id);",
+            "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS estimated_duration VARCHAR(50) DEFAULT '1 día';",
+            "ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assigned_to VARCHAR(50);",
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id VARCHAR(50) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                color VARCHAR(50) DEFAULT 'indigo',
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+            """,
+            """
+            INSERT INTO users (id, name, color)
+            VALUES 
+                ('meli', 'MELI', 'fuchsia'),
+                ('jhon', 'JHON', 'cyan')
+            ON CONFLICT (id) DO NOTHING;
+            """
+        ]
+    else:
+        statements = [
+            "ALTER TABLE projects ADD COLUMN user_id VARCHAR(50) DEFAULT 'meli';",
+            "ALTER TABLE tasks ADD COLUMN estimated_duration VARCHAR(50) DEFAULT '1 día';",
+            "ALTER TABLE tasks ADD COLUMN assigned_to VARCHAR(50);",
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id VARCHAR(50) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                color VARCHAR(50) DEFAULT 'indigo',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            """,
+            """
+            INSERT OR IGNORE INTO users (id, name, color)
+            VALUES 
+                ('meli', 'MELI', 'fuchsia'),
+                ('jhon', 'JHON', 'cyan');
+            """
+        ]
+
+    for sql in statements:
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(sql))
+        except Exception as e:
+            # En SQLite un ALTER TABLE repetido arroja error 'duplicate column', lo cual es esperado
+            logger.debug("Sentencia de migración finalizada/omitida: %s (%s)", sql[:30].strip(), e)
+
+    logger.info("Migraciones automáticas verificadas para %s.", "PostgreSQL" if is_postgres else "SQLite")
 
 
 @asynccontextmanager
@@ -136,3 +134,35 @@ def health_check():
         "environment": settings.ENVIRONMENT,
         "ai_provider": settings.AI_PROVIDER
     }
+
+
+@app.get("/diagnostic", tags=["Sistema"])
+def diagnostic():
+    """
+    Endpoint de diagnóstico para inspeccionar columnas reales en la base de datos y forzar migración.
+    """
+    run_auto_migrations()
+    cols = {}
+    with engine.connect() as conn:
+        for t in ["projects", "tasks", "users"]:
+            try:
+                res = conn.execute(text(f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '{t}';"))
+                cols[t] = [dict(row._mapping) for row in res]
+            except Exception as e:
+                cols[t] = str(e)
+    return {"status": "ok", "columns": cols}
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    error_trace = traceback.format_exc()
+    logger.error("Error no controlado en %s: %s\n%s", request.url.path, exc, error_trace)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": str(exc),
+            "path": request.url.path,
+            "error_type": type(exc).__name__,
+        }
+    )
