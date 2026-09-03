@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 class GeminiAIClient(AIClientInterface):
     """
     Implementación directa con Google Gemini API usando el SDK oficial google-genai.
-    Utiliza Structured Outputs estrictos mediante response_schema = AIProjectPlanSchema.
+    Utiliza Structured Outputs estrictos mediante response_schema = AIProjectPlanSchema
+    con estrategia de reintentos con modelos de respaldo.
     """
 
     def __init__(self, api_key: str = "", model_name: str = ""):
@@ -33,36 +34,55 @@ class GeminiAIClient(AIClientInterface):
         if not self.api_key or not self.client:
             raise ValueError(
                 "GEMINI_API_KEY no está configurada en las variables de entorno. "
-                "Por favor, añade tu clave en el archivo .env."
+                "Por favor, añade tu clave en el archivo .env o en el panel de Render."
             )
 
         user_content = format_user_prompt(prompt)
 
-        try:
-            logger.info("Enviando petición a Gemini con Structured Outputs (%s)...", self.model_name)
-            response = await self.client.aio.models.generate_content(
-                model=self.model_name,
-                contents=user_content,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_PROJECT_PLANNER_PROMPT,
-                    response_mime_type="application/json",
-                    response_schema=AIProjectPlanSchema,
-                    temperature=0.2,
+        # Modelos candidatos con fallback automático en caso de deprecación
+        candidate_models = [self.model_name]
+        for fallback in ["gemini-3.6-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+            if fallback not in candidate_models:
+                candidate_models.append(fallback)
+
+        last_error = None
+
+        for model in candidate_models:
+            try:
+                logger.info("Enviando petición a Gemini con Structured Outputs (modelo: %s)...", model)
+                response = await self.client.aio.models.generate_content(
+                    model=model,
+                    contents=user_content,
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM_PROJECT_PLANNER_PROMPT,
+                        response_mime_type="application/json",
+                        response_schema=AIProjectPlanSchema,
+                        temperature=0.2,
+                    )
                 )
-            )
 
-            raw_text = response.text
-            if not raw_text:
-                raise ValueError("Gemini devolvió una respuesta vacía.")
+                raw_text = response.text
+                if not raw_text:
+                    raise ValueError(f"Gemini devolvió una respuesta vacía con {model}.")
 
-            # Validar e instanciar el esquema tipado de Pydantic
-            data = json.loads(raw_text)
-            validated_plan = AIProjectPlanSchema.model_validate(data)
-            return validated_plan
+                data = json.loads(raw_text)
+                return AIProjectPlanSchema.model_validate(data)
 
-        except ValidationError as ve:
-            logger.error("Error de validación en la salida estructurada de Gemini: %s", ve)
-            raise ValueError(f"La respuesta de la IA no cumplió con el esquema estricto: {ve}") from ve
-        except Exception as e:
-            logger.error("Error al comunicarse con Gemini API: %s", str(e))
-            raise RuntimeError(f"Fallo en llamada a Gemini API: {str(e)}") from e
+            except ValidationError as ve:
+                logger.error("Error de validación en la salida estructurada de Gemini: %s", ve)
+                raise ValueError(f"La respuesta de la IA no cumplió con el esquema estricto: {ve}") from ve
+            except Exception as e:
+                err_str = str(e)
+                logger.warning("Fallo al invocar modelo %s: %s", model, err_str)
+                last_error = e
+                # Si el modelo no existe o fue descontinuado, intentamos con el siguiente
+                if "404" in err_str or "NOT_FOUND" in err_str or "no longer available" in err_str:
+                    continue
+                else:
+                    break
+
+        if last_error:
+            logger.error("Todos los modelos candidatos de Gemini fallaron: %s", str(last_error))
+            raise RuntimeError(f"Fallo en llamada a Gemini API: {str(last_error)}") from last_error
+
+        raise RuntimeError("No se pudo generar el plan del proyecto con Gemini.")
