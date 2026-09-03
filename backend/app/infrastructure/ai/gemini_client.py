@@ -19,7 +19,7 @@ class GeminiAIClient(AIClientInterface):
     """
     Implementación directa con Google Gemini API usando el SDK oficial google-genai.
     Utiliza Structured Outputs estrictos mediante response_schema = AIProjectPlanSchema
-    con estrategia de reintentos con modelos de respaldo.
+    con estrategia de reintentos con modelos de respaldo ante alta demanda (503/429) o deprecación.
     """
 
     def __init__(self, api_key: str = "", model_name: str = ""):
@@ -39,9 +39,9 @@ class GeminiAIClient(AIClientInterface):
 
         user_content = format_user_prompt(prompt)
 
-        # Modelos candidatos con fallback automático en caso de deprecación
+        # Modelos candidatos en orden de prioridad
         candidate_models = [self.model_name]
-        for fallback in ["gemini-3.6-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+        for fallback in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-3.6-flash"]:
             if fallback not in candidate_models:
                 candidate_models.append(fallback)
 
@@ -63,23 +63,20 @@ class GeminiAIClient(AIClientInterface):
 
                 raw_text = response.text
                 if not raw_text:
-                    raise ValueError(f"Gemini devolvió una respuesta vacía con {model}.")
+                    continue
 
                 data = json.loads(raw_text)
                 return AIProjectPlanSchema.model_validate(data)
 
             except ValidationError as ve:
-                logger.error("Error de validación en la salida estructurada de Gemini: %s", ve)
+                logger.error("Error de validación en la salida estructurada de Gemini con %s: %s", model, ve)
                 raise ValueError(f"La respuesta de la IA no cumplió con el esquema estricto: {ve}") from ve
             except Exception as e:
                 err_str = str(e)
                 logger.warning("Fallo al invocar modelo %s: %s", model, err_str)
                 last_error = e
-                # Si el modelo no existe o fue descontinuado, intentamos con el siguiente
-                if "404" in err_str or "NOT_FOUND" in err_str or "no longer available" in err_str:
-                    continue
-                else:
-                    break
+                # Probar con el siguiente modelo de respaldo (503 alta demanda, 429 cuota, 404 no disponible, etc.)
+                continue
 
         if last_error:
             logger.error("Todos los modelos candidatos de Gemini fallaron: %s", str(last_error))
