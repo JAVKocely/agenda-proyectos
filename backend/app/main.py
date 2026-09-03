@@ -102,18 +102,10 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configuración de CORS con soporte garantizado para producción y desarrollo
-origins = list(settings.cors_origins_list)
-for domain in ["https://www.mml.solutions", "https://mml.solutions"]:
-    if domain not in origins:
-        origins.append(domain)
-
-if not origins or settings.ENVIRONMENT == "development":
-    origins = ["*"]
-
+# Configuración de CORS con soporte universal garantizado para cualquier dominio (mml.solutions, Vercel, localhost)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

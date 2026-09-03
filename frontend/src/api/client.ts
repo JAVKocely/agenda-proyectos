@@ -1,5 +1,6 @@
 function getBaseUrl(): string {
-  let url = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').trim();
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim();
+  let url = envUrl || 'https://agenda-ia-backend.onrender.com/api/v1';
   url = url.replace(/\/+$/, ''); // eliminar barras finales
   if (!url.endsWith('/api/v1')) {
     url = `${url}/api/v1`;
@@ -27,7 +28,8 @@ export function getActiveUserId(): string {
 
 export async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  retries = 2
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   const headers = {
@@ -71,8 +73,13 @@ export async function request<T>(
     if (err instanceof ApiError) {
       throw err;
     }
+    // Reintentar automáticamente en caso de error de red (p. ej. si Render está despertando)
+    if (retries > 0) {
+      await new Promise((res) => setTimeout(res, 1200));
+      return request<T>(endpoint, options, retries - 1);
+    }
     throw new ApiError(
-      err.message || 'Error de conexión con el servidor. Asegúrate de que el backend esté en ejecución.',
+      'No se pudo conectar con el servidor en la nube. Por favor intenta de nuevo en unos segundos.',
       0
     );
   }
