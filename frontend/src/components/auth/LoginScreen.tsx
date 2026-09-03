@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, ArrowRight, FolderKanban, Sparkles } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
 
 export type UserId = 'meli' | 'jhon';
 
@@ -16,15 +16,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
 
       {/* Header */}
       <header className="flex items-center justify-between max-w-5xl mx-auto w-full relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-400 p-0.5 shadow-lg shadow-indigo-600/20">
-            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <FolderKanban className="w-5 h-5 text-cyan-400" />
-            </div>
-          </div>
+        <div className="flex items-center gap-3.5">
+          <img
+            src="/logo.png"
+            alt="MML Enterprises Logo"
+            className="w-12 h-12 object-contain rounded-xl p-1 bg-slate-900/80 border border-slate-800/90 shadow-lg"
+          />
           <div>
-            <span className="text-base font-bold text-white tracking-tight">mml.solutions</span>
-            <span className="block text-xs text-slate-400">Work OS Multi-Consola</span>
+            <span className="text-base font-bold text-white tracking-tight">MML ENTERPRISES</span>
+            <span className="block text-xs text-amber-400 font-medium">Work OS Multi-Consola</span>
           </div>
         </div>
 

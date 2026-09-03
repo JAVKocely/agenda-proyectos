@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  FolderKanban,
   Plus,
   Sparkles,
   Search,
@@ -48,18 +47,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
     >
       {/* Header del Sidebar */}
       <div className="h-14 border-b border-slate-800/80 px-3.5 flex items-center justify-between">
-        {!isCollapsed && (
+        {!isCollapsed ? (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-400 p-0.5 shadow-md flex items-center justify-center">
-              <div className="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center">
-                <FolderKanban className="w-4 h-4 text-cyan-400" />
-              </div>
-            </div>
+            <img
+              src="/logo.png"
+              alt="MML Enterprises Logo"
+              className="w-8 h-8 object-contain rounded-lg p-0.5 bg-slate-900/90 border border-slate-800 shadow-sm"
+            />
             <div className="leading-tight">
-              <span className="text-sm font-bold text-white tracking-tight">mml.solutions</span>
-              <span className="block text-[10px] text-slate-400 font-medium">Work OS</span>
+              <span className="text-xs font-bold text-white tracking-tight">MML ENTERPRISES</span>
+              <span className="block text-[10px] text-amber-400 font-medium">Work OS</span>
             </div>
           </div>
+        ) : (
+          <img
+            src="/logo.png"
+            alt="MML"
+            className="w-7 h-7 object-contain rounded-lg p-0.5 bg-slate-900 border border-slate-800"
+          />
         )}
 
         <button
