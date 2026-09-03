@@ -7,7 +7,7 @@ from app.api.schemas.task_dtos import TaskCreateRequest, TaskResponse
 class ProjectCreateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=150)
     description: Optional[str] = None
-    status: Literal["active", "paused", "completed"] = "active"
+    status: Literal["active", "paused", "completed", "archived"] = "active"
     user_id: Optional[str] = "meli"
     estimated_completion_days: Optional[int] = Field(default=7, ge=1)
     target_date: Optional[datetime] = None
@@ -17,7 +17,7 @@ class ProjectCreateRequest(BaseModel):
 class ProjectUpdateRequest(BaseModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=150)
     description: Optional[str] = None
-    status: Optional[Literal["active", "paused", "completed"]] = None
+    status: Optional[Literal["active", "paused", "completed", "archived"]] = None
     estimated_completion_days: Optional[int] = Field(default=None, ge=1)
     target_date: Optional[datetime] = None
 

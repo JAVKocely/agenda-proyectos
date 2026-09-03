@@ -6,6 +6,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   LogOut,
+  Archive,
+  FolderKanban,
 } from 'lucide-react';
 import type { ProjectSummary } from '../../types/project';
 
@@ -33,9 +35,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
 }) => {
   const [filterText, setFilterText] = useState('');
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const isMeli = currentUser === 'meli';
 
-  const filteredProjects = projects.filter((p) =>
+  const activeProjects = projects.filter((p) => p.status !== 'archived');
+  const archivedProjects = projects.filter((p) => p.status === 'archived');
+
+  const currentList = activeTab === 'active' ? activeProjects : archivedProjects;
+  const filteredProjects = currentList.filter((p) =>
     p.title.toLowerCase().includes(filterText.toLowerCase())
   );
 
@@ -131,17 +138,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
 
+      {/* Pestañas de Tableros Activos vs Archivo */}
+      {!isCollapsed && (
+        <div className="px-3 pt-2 pb-1">
+          <div className="flex items-center p-1 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] font-bold gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab('active')}
+              className={`flex-1 py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                activeTab === 'active'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FolderKanban className="w-3 h-3" />
+              <span>Activos</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-mono">
+                {activeProjects.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('archived')}
+              className={`flex-1 py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                activeTab === 'archived'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Archive className="w-3 h-3" />
+              <span>Archivo</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-mono">
+                {archivedProjects.length}
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Lista de Tableros / Proyectos */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {!isCollapsed && (
           <div className="px-2 py-1 flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            <span>Mis Tableros</span>
-            <span className="text-slate-400">{projects.length}</span>
+            <span>{activeTab === 'active' ? 'Tableros Activos' : 'Archivo Histórico'}</span>
+            <span className="text-slate-400">{filteredProjects.length}</span>
           </div>
         )}
 
         {filteredProjects.map((proj) => {
           const isSelected = selectedProjectId === proj.id;
+          const isArchived = proj.status === 'archived';
 
           return (
             <button
@@ -149,25 +196,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => onSelectProject(proj.id)}
               className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
                 isSelected
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                  ? isArchived
+                    ? 'bg-amber-600 text-white shadow-md shadow-amber-600/25'
+                    : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
                   : 'text-slate-300 hover:bg-slate-900 hover:text-white'
               }`}
               title={proj.title}
             >
-              <div
-                className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  proj.status === 'completed'
-                    ? 'bg-[#00c875]'
-                    : proj.status === 'paused'
-                    ? 'bg-[#fdab3d]'
-                    : 'bg-[#579bfc]'
-                }`}
-              />
+              {isArchived ? (
+                <Archive className="w-3.5 h-3.5 flex-shrink-0 text-amber-400" />
+              ) : (
+                <div
+                  className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                    proj.status === 'completed'
+                      ? 'bg-[#00c875]'
+                      : proj.status === 'paused'
+                      ? 'bg-[#fdab3d]'
+                      : 'bg-[#579bfc]'
+                  }`}
+                />
+              )}
 
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="truncate">{proj.title}</p>
-                  <p className={`text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>
+                  <p className="truncate font-semibold">{proj.title}</p>
+                  <p className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
                     {proj.completed_tasks}/{proj.total_tasks} ({proj.progress_percentage}%)
                   </p>
                 </div>
@@ -176,9 +229,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           );
         })}
 
-        {projects.length === 0 && !isCollapsed && (
+        {filteredProjects.length === 0 && !isCollapsed && (
           <div className="text-center py-6 px-2 text-slate-400 text-xs">
-            Sin proyectos en la consola de {isMeli ? 'Meli' : 'Jhon'}. ¡Crea uno nuevo!
+            {activeTab === 'active'
+              ? 'No hay proyectos activos. ¡Crea uno nuevo con el botón de Proyecto o IA!'
+              : 'El archivo histórico está vacío. Cuando completes el 100% de un proyecto podrás archivarlo aquí.'}
           </div>
         )}
       </div>

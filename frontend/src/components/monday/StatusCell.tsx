@@ -44,6 +44,13 @@ export const STATUS_OPTIONS: Record<TaskStatus, StatusOption> = {
     hoverBg: 'hover:bg-[#4a85d9]',
     textColor: 'text-white',
   },
+  archived: {
+    id: 'archived',
+    label: 'Archivado',
+    bg: 'bg-amber-600',
+    hoverBg: 'hover:bg-amber-500',
+    textColor: 'text-white',
+  },
 };
 
 export const StatusCell: React.FC<StatusCellProps> = ({

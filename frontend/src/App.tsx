@@ -7,6 +7,7 @@ import { TimelineView } from './components/monday/TimelineView';
 import { LoginScreen } from './components/auth/LoginScreen';
 import { AiProjectCreationModal } from './components/ai/AiProjectCreationModal';
 import { TaskModal } from './components/dashboard/TaskModal';
+import { ArchiveConfirmationModal } from './components/dashboard/ArchiveConfirmationModal';
 import { projectsApi } from './api/projectsApi';
 import type {
   ProjectSummary,
@@ -14,7 +15,7 @@ import type {
   TaskCreatePayload,
   TaskUpdatePayload,
 } from './types/project';
-import { AlertCircle, Loader2, Sparkles, FolderKanban, Plus } from 'lucide-react';
+import { AlertCircle, Loader2, Sparkles, FolderKanban, Plus, Archive, RotateCcw } from 'lucide-react';
 
 export function App() {
   // Estado del usuario activo (string | null)
@@ -32,6 +33,7 @@ export function App() {
 
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState<boolean>(false);
+  const [projectToArchivePrompt, setProjectToArchivePrompt] = useState<ProjectDetail | null>(null);
 
   // Estado del tema ('dark' | 'light')
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -97,8 +99,10 @@ export function App() {
       setIsDetailLoading(true);
       const detail = await projectsApi.getProject(id);
       setSelectedProjectDetail(detail);
+      return detail;
     } catch (err: any) {
       setErrorMessage(err.message || 'Error al cargar el detalle del proyecto');
+      return null;
     } finally {
       setIsDetailLoading(false);
     }
@@ -177,9 +181,32 @@ export function App() {
   ) => {
     await projectsApi.updateTask(taskId, payload);
     if (selectedProjectId) {
-      await loadProjectDetail(selectedProjectId);
+      const updated = await loadProjectDetail(selectedProjectId);
       projectsApi.getProjects().then(setProjects);
+
+      // Si la tarea se marcó como lista ('completed'), verificar si se cumplieron TODAS las tareas
+      if (
+        payload.status === 'completed' &&
+        updated &&
+        updated.status !== 'archived' &&
+        updated.tasks.length > 0 &&
+        updated.tasks.every((t) => t.status === 'completed')
+      ) {
+        setProjectToArchivePrompt(updated);
+      }
     }
+  };
+
+  const handleConfirmArchive = async (projectId: string) => {
+    await projectsApi.updateProject(projectId, { status: 'archived' });
+    await loadProjects();
+    await loadProjectDetail(projectId);
+  };
+
+  const handleUnarchiveProject = async (projectId: string) => {
+    await projectsApi.updateProject(projectId, { status: 'active' });
+    await loadProjects();
+    await loadProjectDetail(projectId);
   };
 
   const handleDeleteTask = async (taskId: string) => {
@@ -295,6 +322,33 @@ export function App() {
           ) : (
             /* Render de Vistas Dinámicas */
             <div>
+              {/* Banner de Consulta de Proyecto en Archivo Histórico */}
+              {selectedProjectDetail.status === 'archived' && (
+                <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-300 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0 text-amber-400">
+                      <Archive className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-amber-200 text-sm">
+                        Proyecto en Archivo Histórico
+                      </p>
+                      <p className="text-[11px] text-amber-300/80">
+                        Este proyecto y todas sus tareas cumplidas están resguardados en la base de datos para consulta posterior.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleUnarchiveProject(selectedProjectDetail.id)}
+                    className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-amber-500/20 flex-shrink-0"
+                    title="Devolver este proyecto a la lista de tableros activos"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Restaurar al Tablero Activo</span>
+                  </button>
+                </div>
+              )}
+
               {activeView === 'table' && (
                 <MainTable
                   tasks={filteredTasks}
@@ -340,6 +394,14 @@ export function App() {
         selectedProjectId={selectedProjectId}
         onAddTask={handleAddTaskFromModal}
         onCreateDefaultProjectAndTask={handleCreateDefaultProjectAndTask}
+      />
+
+      {/* Modal de Confirmación para Pasar a Archivo */}
+      <ArchiveConfirmationModal
+        isOpen={!!projectToArchivePrompt}
+        project={projectToArchivePrompt}
+        onClose={() => setProjectToArchivePrompt(null)}
+        onConfirmArchive={handleConfirmArchive}
       />
     </div>
   );

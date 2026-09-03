@@ -25,6 +25,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'sm' })
       dot: 'bg-blue-400',
       label: 'Completado',
     },
+    archived: {
+      bg: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+      dot: 'bg-amber-400',
+      label: 'Archivado',
+    },
   };
 
   const item = config[status] || config.active;

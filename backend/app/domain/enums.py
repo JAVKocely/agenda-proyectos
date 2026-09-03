@@ -5,6 +5,7 @@ class ProjectStatus(str, Enum):
     ACTIVE = "active"
     PAUSED = "paused"
     COMPLETED = "completed"
+    ARCHIVED = "archived"
 
 
 class TaskPriority(str, Enum):
@@ -19,3 +20,4 @@ class TaskStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     STUCK = "stuck"
     COMPLETED = "completed"
+    ARCHIVED = "archived"
