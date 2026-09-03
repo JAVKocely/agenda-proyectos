@@ -14,17 +14,29 @@ from app.infrastructure.ai.prompt_templates import (
 
 logger = logging.getLogger(__name__)
 
+# Modelos oficiales vigentes y recomendados por Google Gemini API
+SUPPORTED_GEMINI_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.5-flash-lite",
+]
+
 
 class GeminiAIClient(AIClientInterface):
     """
     Implementación directa con Google Gemini API usando el SDK oficial google-genai.
     Utiliza Structured Outputs estrictos mediante response_schema = AIProjectPlanSchema
-    con estrategia de reintentos con modelos de respaldo ante alta demanda (503/429) o deprecación.
+    con estrategia de reintentos con modelos oficiales de respaldo ante alta demanda (503/429).
     """
 
     def __init__(self, api_key: str = "", model_name: str = ""):
         self.api_key = api_key or settings.GEMINI_API_KEY
-        self.model_name = model_name or settings.GEMINI_MODEL
+        raw_model = model_name or settings.GEMINI_MODEL
+        # Normalizar automáticamente modelos deprecados (como 1.5 o nombres antiguos)
+        if not raw_model or "1.5" in raw_model or "3.6" in raw_model:
+            raw_model = "gemini-2.5-flash"
+        self.model_name = raw_model
+
         if self.api_key:
             self.client = genai.Client(api_key=self.api_key)
         else:
@@ -39,11 +51,11 @@ class GeminiAIClient(AIClientInterface):
 
         user_content = format_user_prompt(prompt)
 
-        # Modelos candidatos en orden de prioridad
+        # Orden de modelos candidatos vigentes
         candidate_models = [self.model_name]
-        for fallback in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-3.6-flash"]:
-            if fallback not in candidate_models:
-                candidate_models.append(fallback)
+        for m in SUPPORTED_GEMINI_MODELS:
+            if m not in candidate_models:
+                candidate_models.append(m)
 
         last_error = None
 
@@ -75,7 +87,7 @@ class GeminiAIClient(AIClientInterface):
                 err_str = str(e)
                 logger.warning("Fallo al invocar modelo %s: %s", model, err_str)
                 last_error = e
-                # Probar con el siguiente modelo de respaldo (503 alta demanda, 429 cuota, 404 no disponible, etc.)
+                # Probar con el siguiente modelo de respaldo (503 alta demanda, 429 cuota, etc.)
                 continue
 
         if last_error:
