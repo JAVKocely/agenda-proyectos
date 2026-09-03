@@ -8,8 +8,18 @@ import {
   LogOut,
   Archive,
   FolderKanban,
+  CheckSquare,
 } from 'lucide-react';
 import type { ProjectSummary } from '../../types/project';
+
+export const isTaskItem = (item?: { title: string; description?: string | null } | null): boolean => {
+  if (!item) return false;
+  const title = (item.title || '').toLowerCase();
+  if (title.includes('tablero') || title.includes('tarea')) return true;
+  const desc = (item.description || '').toLowerCase();
+  if (desc.includes('espacio de trabajo general') || desc.includes('tarea')) return true;
+  return false;
+};
 
 interface SidebarProps {
   projects: ProjectSummary[];
@@ -21,6 +31,7 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   currentUser: string;
   onLogout: () => void;
+  filterType?: 'all' | 'projects' | 'tasks';
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -33,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
   currentUser,
   onLogout,
+  filterType = 'all',
 }) => {
   const [filterText, setFilterText] = useState('');
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
@@ -42,9 +54,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const archivedProjects = projects.filter((p) => p.status === 'archived');
 
   const currentList = activeTab === 'active' ? activeProjects : archivedProjects;
-  const filteredProjects = currentList.filter((p) =>
-    p.title.toLowerCase().includes(filterText.toLowerCase())
-  );
+  const filteredProjects = currentList.filter((p) => {
+    const matchesText = p.title.toLowerCase().includes(filterText.toLowerCase());
+    if (!matchesText) return false;
+    if (filterType === 'tasks') return isTaskItem(p);
+    if (filterType === 'projects') return !isTaskItem(p);
+    return true;
+  });
 
   return (
     <aside
@@ -189,38 +205,64 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {filteredProjects.map((proj) => {
           const isSelected = selectedProjectId === proj.id;
           const isArchived = proj.status === 'archived';
+          const isTask = isTaskItem(proj);
+
+          // Clases de estilo según tipo: Tarea (cyan) vs Proyecto (morado/índigo)
+          let itemStyle = 'text-slate-300 hover:bg-slate-900 hover:text-white border border-transparent';
+          if (isSelected) {
+            if (isArchived) {
+              itemStyle = 'bg-amber-600 text-white shadow-md shadow-amber-600/30 border border-amber-400/40';
+            } else if (isTask) {
+              // Color de TAREA: Cyan / Turquesa
+              itemStyle =
+                'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-md shadow-cyan-500/30 border border-cyan-400/50';
+            } else {
+              // Color de PROYECTO: Morado / Violeta / Índigo
+              itemStyle =
+                'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/30 border border-indigo-400/50';
+            }
+          }
 
           return (
             <button
               key={proj.id}
               onClick={() => onSelectProject(proj.id)}
-              className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
-                isSelected
-                  ? isArchived
-                    ? 'bg-amber-600 text-white shadow-md shadow-amber-600/25'
-                    : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
-                  : 'text-slate-300 hover:bg-slate-900 hover:text-white'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${itemStyle}`}
               title={proj.title}
             >
               {isArchived ? (
-                <Archive className="w-3.5 h-3.5 flex-shrink-0 text-amber-400" />
+                <Archive className="w-3.5 h-3.5 flex-shrink-0 text-amber-300" />
+              ) : isTask ? (
+                <CheckSquare
+                  className={`w-3.5 h-3.5 flex-shrink-0 ${
+                    isSelected ? 'text-cyan-100' : 'text-cyan-400'
+                  }`}
+                />
               ) : (
-                <div
-                  className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                    proj.status === 'completed'
-                      ? 'bg-[#00c875]'
-                      : proj.status === 'paused'
-                      ? 'bg-[#fdab3d]'
-                      : 'bg-[#579bfc]'
+                <FolderKanban
+                  className={`w-3.5 h-3.5 flex-shrink-0 ${
+                    isSelected ? 'text-indigo-100' : 'text-indigo-400'
                   }`}
                 />
               )}
 
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="truncate font-semibold">{proj.title}</p>
-                  <p className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <p className="truncate font-semibold">{proj.title}</p>
+                    <span
+                      className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded uppercase tracking-wider flex-shrink-0 ${
+                        isSelected
+                          ? 'bg-black/20 text-white'
+                          : isTask
+                          ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
+                          : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
+                      }`}
+                    >
+                      {isTask ? 'Tarea' : 'Proyecto'}
+                    </span>
+                  </div>
+                  <p className={`text-[10px] ${isSelected ? 'text-white/90 font-medium' : 'text-slate-400'}`}>
                     {proj.completed_tasks}/{proj.total_tasks} ({proj.progress_percentage}%)
                   </p>
                 </div>

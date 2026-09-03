@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { ProjectDetail, UserProfile } from '../../types/project';
 import { getUserGradient } from './ResponsibleCell';
+import { isTaskItem } from './Sidebar';
 
 export type ActiveView = 'table' | 'kanban' | 'timeline';
 
@@ -81,8 +82,19 @@ export const Topbar: React.FC<TopbarProps> = ({
       {/* Título y Acciones Principales */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            {project ? project.title : 'Selecciona un Tablero'}
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+            <span>{project ? project.title : 'Selecciona un Tablero'}</span>
+            {project && (
+              <span
+                className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
+                  isTaskItem(project)
+                    ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-xs shadow-cyan-500/20'
+                    : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40 shadow-xs shadow-indigo-500/20'
+                }`}
+              >
+                {isTaskItem(project) ? 'Tarea' : 'Proyecto'}
+              </span>
+            )}
           </h1>
           {project && (
             <button

@@ -360,6 +360,7 @@ export function App() {
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         currentUser={currentUser}
         onLogout={handleLogout}
+        filterType={filterType}
       />
 
       {/* Área Principal de Trabajo */}
