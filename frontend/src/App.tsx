@@ -122,9 +122,11 @@ export function App() {
   };
 
   // Cargar detalle del proyecto seleccionado
-  const loadProjectDetail = useCallback(async (id: string) => {
+  const loadProjectDetail = useCallback(async (id: string, isSilent = false) => {
     try {
-      setIsDetailLoading(true);
+      if (!isSilent) {
+        setIsDetailLoading(true);
+      }
       const detail = await projectsApi.getProject(id);
       setSelectedProjectDetail(detail);
       return detail;
@@ -132,7 +134,9 @@ export function App() {
       setErrorMessage(err.message || 'Error al cargar el detalle del proyecto');
       return null;
     } finally {
-      setIsDetailLoading(false);
+      if (!isSilent) {
+        setIsDetailLoading(false);
+      }
     }
   }, []);
 
@@ -227,20 +231,54 @@ export function App() {
     taskId: string,
     payload: TaskUpdatePayload
   ) => {
-    await projectsApi.updateTask(taskId, payload);
-    if (selectedProjectId) {
-      const updated = await loadProjectDetail(selectedProjectId);
-      projectsApi.getProjects().then(setProjects);
+    // 1. Actualización optimista inmediata en memoria (sin parpadeos ni desmontaje del cuadro)
+    setSelectedProjectDetail((prev) => {
+      if (!prev) return prev;
+      const updatedTasks = prev.tasks.map((t) => {
+        if (t.id === taskId) {
+          return { ...t, ...payload };
+        }
+        return t;
+      });
 
-      // Si la tarea se marcó como lista ('completed'), verificar si se cumplieron TODAS las tareas
-      if (
-        payload.status === 'completed' &&
-        updated &&
-        updated.status !== 'archived' &&
-        updated.tasks.length > 0 &&
-        updated.tasks.every((t) => t.status === 'completed')
-      ) {
-        setProjectToArchivePrompt(updated);
+      const completedCount = updatedTasks.filter((t) => t.status === 'completed').length;
+      const progress =
+        updatedTasks.length > 0
+          ? Math.round((completedCount / updatedTasks.length) * 100)
+          : 0;
+
+      return {
+        ...prev,
+        tasks: updatedTasks,
+        completed_tasks: completedCount,
+        progress_percentage: progress,
+      };
+    });
+
+    try {
+      // 2. Persistir en la API en segundo plano
+      await projectsApi.updateTask(taskId, payload);
+
+      // 3. Sincronizar en segundo plano silenciosamente
+      if (selectedProjectId) {
+        const updated = await loadProjectDetail(selectedProjectId, true);
+        projectsApi.getProjects().then(setProjects);
+
+        // Si la tarea se marcó como lista ('completed'), verificar si se cumplieron TODAS las tareas
+        if (
+          payload.status === 'completed' &&
+          updated &&
+          updated.status !== 'archived' &&
+          updated.tasks.length > 0 &&
+          updated.tasks.every((t) => t.status === 'completed')
+        ) {
+          setProjectToArchivePrompt(updated);
+        }
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error al actualizar la tarea');
+      if (selectedProjectId) {
+        loadProjectDetail(selectedProjectId, true);
       }
     }
   };
@@ -248,28 +286,53 @@ export function App() {
   const handleConfirmArchive = async (projectId: string) => {
     await projectsApi.updateProject(projectId, { status: 'archived' });
     await loadProjects();
-    await loadProjectDetail(projectId);
+    await loadProjectDetail(projectId, true);
   };
 
   const handleUnarchiveProject = async (projectId: string) => {
     await projectsApi.updateProject(projectId, { status: 'active' });
     await loadProjects();
-    await loadProjectDetail(projectId);
+    await loadProjectDetail(projectId, true);
   };
 
   const handleDeleteTask = async (taskId: string) => {
     if (!window.confirm('¿Deseas eliminar este elemento?')) return;
-    await projectsApi.deleteTask(taskId);
-    if (selectedProjectId) {
-      await loadProjectDetail(selectedProjectId);
-      projectsApi.getProjects().then(setProjects);
+
+    // Actualización optimista al eliminar
+    setSelectedProjectDetail((prev) => {
+      if (!prev) return prev;
+      const updatedTasks = prev.tasks.filter((t) => t.id !== taskId);
+      const completedCount = updatedTasks.filter((t) => t.status === 'completed').length;
+      const progress =
+        updatedTasks.length > 0
+          ? Math.round((completedCount / updatedTasks.length) * 100)
+          : 0;
+      return {
+        ...prev,
+        tasks: updatedTasks,
+        completed_tasks: completedCount,
+        progress_percentage: progress,
+      };
+    });
+
+    try {
+      await projectsApi.deleteTask(taskId);
+      if (selectedProjectId) {
+        await loadProjectDetail(selectedProjectId, true);
+        projectsApi.getProjects().then(setProjects);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error al eliminar la tarea');
+      if (selectedProjectId) {
+        loadProjectDetail(selectedProjectId, true);
+      }
     }
   };
 
   const handleAddTaskInline = async (payload: TaskCreatePayload) => {
     if (!selectedProjectId) return;
     await projectsApi.addTask(selectedProjectId, payload);
-    await loadProjectDetail(selectedProjectId);
+    await loadProjectDetail(selectedProjectId, true);
     projectsApi.getProjects().then(setProjects);
   };
 
@@ -367,10 +430,16 @@ export function App() {
                 </button>
               </div>
             </div>
-          ) : isDetailLoading || !selectedProjectDetail ? (
+          ) : !selectedProjectDetail ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-              <Loader2 className="w-6 h-6 animate-spin text-indigo-500 mb-2" />
-              <p className="text-xs">Cargando tablero...</p>
+              {isDetailLoading ? (
+                <>
+                  <Loader2 className="w-6 h-6 animate-spin text-indigo-500 mb-2" />
+                  <p className="text-xs">Cargando tablero...</p>
+                </>
+              ) : (
+                <p className="text-xs">Selecciona un proyecto de la barra lateral</p>
+              )}
             </div>
           ) : (
             /* Render de Vistas Dinámicas */
