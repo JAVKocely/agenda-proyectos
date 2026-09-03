@@ -8,6 +8,7 @@ class ProjectCreateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=150)
     description: Optional[str] = None
     status: Literal["active", "paused", "completed"] = "active"
+    user_id: Optional[str] = "meli"
     estimated_completion_days: Optional[int] = Field(default=7, ge=1)
     target_date: Optional[datetime] = None
     tasks: Optional[List[TaskCreateRequest]] = None
@@ -26,6 +27,7 @@ class ProjectSummaryResponse(BaseModel):
     title: str
     description: Optional[str] = None
     status: str
+    user_id: str = "meli"
     estimated_completion_days: Optional[int] = None
     target_date: Optional[datetime] = None
     created_at: datetime

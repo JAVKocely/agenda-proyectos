@@ -12,13 +12,17 @@ class ProjectRepository:
     def get_all(
         self,
         status: Optional[str] = None,
-        search: Optional[str] = None
+        search: Optional[str] = None,
+        user_id: Optional[str] = None
     ) -> List[ProjectModel]:
         stmt = (
             select(ProjectModel)
             .options(joinedload(ProjectModel.tasks))
             .order_by(ProjectModel.created_at.desc())
         )
+
+        if user_id:
+            stmt = stmt.filter(ProjectModel.user_id == user_id)
 
         if status:
             stmt = stmt.filter(ProjectModel.status == status)
@@ -35,12 +39,14 @@ class ProjectRepository:
         result = self.db.execute(stmt)
         return list(result.unique().scalars().all())
 
-    def get_by_id(self, project_id: str) -> Optional[ProjectModel]:
+    def get_by_id(self, project_id: str, user_id: Optional[str] = None) -> Optional[ProjectModel]:
         stmt = (
             select(ProjectModel)
             .options(joinedload(ProjectModel.tasks))
             .filter(ProjectModel.id == project_id)
         )
+        if user_id:
+            stmt = stmt.filter(ProjectModel.user_id == user_id)
         result = self.db.execute(stmt)
         return result.unique().scalar_one_or_none()
 
@@ -49,6 +55,8 @@ class ProjectRepository:
         project_data: Dict[str, Any],
         tasks_data: Optional[List[Dict[str, Any]]] = None
     ) -> ProjectModel:
+        if "user_id" not in project_data or not project_data["user_id"]:
+            project_data["user_id"] = "meli"
         project = ProjectModel(**project_data)
         self.db.add(project)
         self.db.flush()  # Para obtener el id generado

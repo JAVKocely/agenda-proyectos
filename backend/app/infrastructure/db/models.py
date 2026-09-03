@@ -24,6 +24,7 @@ class ProjectModel(Base):
     raw_prompt = Column(Text, nullable=True)
     estimated_completion_days = Column(Integer, nullable=True, default=7)
     target_date = Column(DateTime(timezone=True), nullable=True)
+    user_id = Column(String(50), nullable=False, default="meli")
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)
 
@@ -37,6 +38,7 @@ class ProjectModel(Base):
 
     __table_args__ = (
         Index("idx_projects_status", "status"),
+        Index("idx_projects_user_id", "user_id"),
         Index("idx_projects_created_at", "created_at"),
     )
 

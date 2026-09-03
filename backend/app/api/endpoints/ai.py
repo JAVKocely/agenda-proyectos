@@ -1,5 +1,6 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -15,17 +16,19 @@ router = APIRouter(prefix="/ai", tags=["Agente IA"])
 @router.post("/generate-project", response_model=ProjectDetailResponse, status_code=status.HTTP_201_CREATED)
 async def generate_project_from_prompt(
     payload: AIGenerateProjectRequest,
+    x_user_id: Optional[str] = Header(default="meli", alias="X-User-Id"),
     db: Session = Depends(get_db)
 ):
     """
     Agente Organizador de Proyectos:
     Recibe notas o alcance en texto libre, invoca al LLM mediante Structured Outputs
     con esquema estricto (JSON Schema), crea el proyecto con sus tareas ordenadas
-    y retorna la entidad completa lista para ser consumida por el cliente.
+    asociado al usuario activo (MELI o JHON) y retorna la entidad completa.
     """
+    active_user = (x_user_id or "meli").strip().lower()
     service = AIPlannerService(db)
     try:
-        project = await service.generate_and_create_project(payload.prompt)
+        project = await service.generate_and_create_project(payload.prompt, user_id=active_user)
         return project
     except ValueError as ve:
         logger.warning("Petición rechazada en generación con IA: %s", ve)

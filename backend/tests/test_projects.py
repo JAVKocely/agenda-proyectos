@@ -93,3 +93,45 @@ def test_cascade_deletion(client):
 
     # Verificar que la tarea fue eliminada en cascada
     assert client.get(f"/api/v1/tasks/{task_id}").status_code == 404
+
+
+def test_multi_user_data_isolation(client):
+    """
+    Verifica que los datos de MELI y JHON están 100% aislados.
+    Meli no puede ver los proyectos de Jhon, y Jhon no puede ver los de Meli.
+    """
+    # Meli crea un proyecto
+    res_meli = client.post(
+        "/api/v1/projects",
+        json={"title": "Proyecto Secreto de Meli"},
+        headers={"X-User-Id": "meli"}
+    )
+    assert res_meli.status_code == 201
+    meli_proj_id = res_meli.json()["id"]
+
+    # Jhon crea un proyecto
+    res_jhon = client.post(
+        "/api/v1/projects",
+        json={"title": "Proyecto Privado de Jhon"},
+        headers={"X-User-Id": "jhon"}
+    )
+    assert res_jhon.status_code == 201
+    jhon_proj_id = res_jhon.json()["id"]
+
+    # Meli lista proyectos: solo debe ver el suyo
+    meli_list = client.get("/api/v1/projects", headers={"X-User-Id": "meli"}).json()
+    meli_titles = [p["title"] for p in meli_list]
+    assert "Proyecto Secreto de Meli" in meli_titles
+    assert "Proyecto Privado de Jhon" not in meli_titles
+
+    # Jhon lista proyectos: solo debe ver el suyo
+    jhon_list = client.get("/api/v1/projects", headers={"X-User-Id": "jhon"}).json()
+    jhon_titles = [p["title"] for p in jhon_list]
+    assert "Proyecto Privado de Jhon" in jhon_titles
+    assert "Proyecto Secreto de Meli" not in jhon_titles
+
+    # Jhon no puede acceder por ID al proyecto de Meli
+    assert client.get(f"/api/v1/projects/{meli_proj_id}", headers={"X-User-Id": "jhon"}).status_code == 404
+
+    # Meli no puede acceder por ID al proyecto de Jhon
+    assert client.get(f"/api/v1/projects/{jhon_proj_id}", headers={"X-User-Id": "meli"}).status_code == 404

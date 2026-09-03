@@ -12,18 +12,22 @@ class ProjectService:
     def list_projects(
         self,
         status: Optional[str] = None,
-        search: Optional[str] = None
+        search: Optional[str] = None,
+        user_id: Optional[str] = None
     ) -> List[ProjectModel]:
-        return self.project_repo.get_all(status=status, search=search)
+        return self.project_repo.get_all(status=status, search=search, user_id=user_id)
 
-    def get_project(self, project_id: str) -> Optional[ProjectModel]:
-        return self.project_repo.get_by_id(project_id)
+    def get_project(self, project_id: str, user_id: Optional[str] = None) -> Optional[ProjectModel]:
+        return self.project_repo.get_by_id(project_id, user_id=user_id)
 
     def create_project(
         self,
         project_data: Dict[str, Any],
-        tasks_data: Optional[List[Dict[str, Any]]] = None
+        tasks_data: Optional[List[Dict[str, Any]]] = None,
+        user_id: Optional[str] = None
     ) -> ProjectModel:
+        if user_id:
+            project_data["user_id"] = user_id
         return self.project_repo.create(project_data, tasks_data)
 
     def update_project(

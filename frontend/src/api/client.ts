@@ -21,6 +21,10 @@ export class ApiError extends Error {
   }
 }
 
+export function getActiveUserId(): string {
+  return localStorage.getItem('mml_active_user') || 'meli';
+}
+
 export async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -28,6 +32,7 @@ export async function request<T>(
   const url = `${API_BASE_URL}${endpoint}`;
   const headers = {
     'Content-Type': 'application/json',
+    'X-User-Id': getActiveUserId(),
     ...(options.headers || {}),
   };
 

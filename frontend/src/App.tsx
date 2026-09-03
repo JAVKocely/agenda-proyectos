@@ -4,6 +4,7 @@ import { Topbar, type ActiveView } from './components/monday/Topbar';
 import { MainTable } from './components/monday/MainTable';
 import { KanbanView } from './components/monday/KanbanView';
 import { TimelineView } from './components/monday/TimelineView';
+import { LoginScreen, type UserId } from './components/auth/LoginScreen';
 import { AiProjectCreationModal } from './components/ai/AiProjectCreationModal';
 import { ManualProjectModal } from './components/dashboard/ManualProjectModal';
 import { AddTaskModal } from './components/detail/AddTaskModal';
@@ -19,6 +20,15 @@ import type {
 import { AlertCircle, Loader2, Sparkles, FolderKanban } from 'lucide-react';
 
 export function App() {
+  // Estado del usuario activo ('meli' | 'jhon' | null)
+  const [currentUser, setCurrentUser] = useState<UserId | null>(() => {
+    const saved = localStorage.getItem('mml_active_user');
+    if (saved === 'meli' || saved === 'jhon') {
+      return saved;
+    }
+    return null;
+  });
+
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedProjectDetail, setSelectedProjectDetail] = useState<ProjectDetail | null>(null);
@@ -31,32 +41,40 @@ export function App() {
   const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState<boolean>(false);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Cargar lista de proyectos
+  // Cargar lista de proyectos del usuario activo
   const loadProjects = useCallback(async () => {
+    if (!currentUser) return;
     try {
       setIsLoading(true);
       setErrorMessage(null);
       const data = await projectsApi.getProjects();
       setProjects(data);
 
-      // Si no hay proyecto seleccionado y tenemos proyectos, seleccionar el primero automáticamente como en Monday.com
-      if (!selectedProjectId && data.length > 0) {
-        setSelectedProjectId(data[0].id);
+      // Si no hay proyecto seleccionado o el seleccionado no está en la lista del usuario actual, seleccionar el primero
+      if (data.length > 0) {
+        setSelectedProjectId((prev) => {
+          const exists = data.some((p) => p.id === prev);
+          return exists ? prev : data[0].id;
+        });
+      } else {
+        setSelectedProjectId(null);
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Error al conectar con la API de proyectos');
     } finally {
       setIsLoading(false);
     }
-  }, [selectedProjectId]);
+  }, [currentUser]);
 
   useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
+    if (currentUser) {
+      loadProjects();
+    }
+  }, [currentUser, loadProjects]);
 
   // Cargar detalle del proyecto seleccionado
   const loadProjectDetail = useCallback(async (id: string) => {
@@ -78,6 +96,22 @@ export function App() {
       setSelectedProjectDetail(null);
     }
   }, [selectedProjectId, loadProjectDetail]);
+
+  // Manejo de Inicio y Cierre de Sesión
+  const handleSelectUser = (user: UserId) => {
+    localStorage.setItem('mml_active_user', user);
+    setCurrentUser(user);
+    setSelectedProjectId(null);
+    setSelectedProjectDetail(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('mml_active_user');
+    setCurrentUser(null);
+    setProjects([]);
+    setSelectedProjectId(null);
+    setSelectedProjectDetail(null);
+  };
 
   // Filtro de tareas en el tablero actual
   const filteredTasks = useMemo(() => {
@@ -113,7 +147,6 @@ export function App() {
     await projectsApi.updateTask(taskId, payload);
     if (selectedProjectId) {
       await loadProjectDetail(selectedProjectId);
-      // Refrescar lista de proyectos en segundo plano para actualizar los contadores
       projectsApi.getProjects().then(setProjects);
     }
   };
@@ -134,9 +167,14 @@ export function App() {
     projectsApi.getProjects().then(setProjects);
   };
 
+  // Si no hay usuario seleccionado, mostrar la pantalla de ingreso para MELI y JHON
+  if (!currentUser) {
+    return <LoginScreen onSelectUser={handleSelectUser} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex selection:bg-indigo-500 selection:text-white font-sans">
-      {/* Barra Lateral estilo Monday.com */}
+      {/* Barra Lateral personalizada para Meli / Jhon */}
       <Sidebar
         projects={projects}
         selectedProjectId={selectedProjectId}
@@ -145,19 +183,22 @@ export function App() {
         onOpenManualModal={() => setIsManualModalOpen(true)}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* Área Principal de Trabajo */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-        {/* Barra Superior con Vistas (Tabla, Kanban, Timeline) */}
+        {/* Barra Superior con Selector de Vistas y Perfil */}
         <Topbar
           project={selectedProjectDetail}
           activeView={activeView}
           onViewChange={setActiveView}
           searchFilter={boardSearch}
           onSearchChange={setBoardSearch}
-          onOpenAiModal={() => setIsAiModalOpen(true)}
           onOpenAddTaskModal={() => setIsAddTaskModalOpen(true)}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
 
         {/* Mensaje de Alerta si ocurre un error */}
@@ -181,19 +222,21 @@ export function App() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 text-slate-400">
               <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-3" />
-              <p className="text-sm font-medium">Cargando espacio de trabajo de Monday...</p>
+              <p className="text-sm font-medium">Cargando consola de {currentUser === 'meli' ? 'Meli' : 'Jhon'}...</p>
             </div>
           ) : projects.length === 0 ? (
-            /* Estado de Bienvenida cuando no hay tableros */
+            /* Estado de Bienvenida cuando no hay tableros en esta consola */
             <div className="max-w-xl mx-auto my-16 text-center p-8 bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl backdrop-blur-sm">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-0.5 mx-auto mb-5 shadow-lg shadow-indigo-500/20">
                 <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
                   <FolderKanban className="w-8 h-8 text-cyan-400" />
                 </div>
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Bienvenido a tu espacio de trabajo</h2>
+              <h2 className="text-xl font-bold text-white mb-2">
+                Consola privada de {currentUser === 'meli' ? 'Meli' : 'Jhon'}
+              </h2>
               <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                Gestiona tus proyectos con la agilidad visual de Monday.com. Escribe tus notas y deja que la IA organice las fases y tareas en segundos.
+                Este espacio de trabajo te pertenece exclusivamente a ti. Los proyectos creados aquí son independientes y privados.
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
@@ -201,7 +244,7 @@ export function App() {
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-indigo-500/25 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Crear con Monday AI</span>
+                  <span>Crear con IA</span>
                 </button>
                 <button
                   onClick={() => setIsManualModalOpen(true)}
