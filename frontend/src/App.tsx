@@ -264,9 +264,9 @@ export function App() {
           ) : projects.length === 0 ? (
             /* Estado de Bienvenida cuando no hay tableros en esta consola */
             <div className="max-w-xl mx-auto my-16 text-center p-8 bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl backdrop-blur-sm">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-0.5 mx-auto mb-5 shadow-lg shadow-indigo-500/20">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 p-0.5 mx-auto mb-5 shadow-lg shadow-indigo-500/20">
                 <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-                  <FolderKanban className="w-8 h-8 text-cyan-400" />
+                  <FolderKanban className="folder-welcome-icon w-8 h-8 text-indigo-600 dark:text-cyan-400 transition-colors" />
                 </div>
               </div>
               <h2 className="text-xl font-bold text-white mb-2">

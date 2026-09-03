@@ -154,6 +154,11 @@ html.light .btn-tarea:hover {
   border-color: #475569 !important;
 }
 
+/* Delineado de icono de carpeta del tono del botón */
+html.light .folder-welcome-icon {
+  color: #6366f1 !important; /* Tono violeta/índigo del botón */
+}
+
 /* Estados Hover */
 html.light .hover\:bg-slate-900:hover {
   background-color: #f1f5f9 !important;
