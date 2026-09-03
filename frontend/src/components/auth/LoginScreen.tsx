@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { ShieldCheck, ArrowRight } from 'lucide-react';
 
 export type UserId = 'meli' | 'jhon';
 
@@ -14,19 +14,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-fuchsia-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Header */}
+      {/* Header Superior Minimalista */}
       <header className="flex items-center justify-between max-w-5xl mx-auto w-full relative z-10">
-        <div className="flex items-center gap-3.5">
-          <img
-            src="/logo.png"
-            alt="MML Enterprises Logo"
-            className="w-12 h-12 object-contain rounded-xl p-1 bg-slate-900/80 border border-slate-800/90 shadow-lg"
-          />
-          <div>
-            <span className="text-base font-bold text-white tracking-tight">MML ENTERPRISES</span>
-            <span className="block text-xs text-amber-400 font-medium">Work OS Multi-Consola</span>
-          </div>
-        </div>
+        <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+          MML Enterprises
+        </span>
 
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-emerald-400 font-medium">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -34,20 +26,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
         </div>
       </header>
 
-      {/* Contenido Central: Selección de Usuario */}
-      <main className="max-w-4xl mx-auto w-full my-auto py-12 relative z-10 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Acceso Privado e Independiente</span>
+      {/* Contenido Central: Logo Central Mediano + Tarjetas de Perfil */}
+      <main className="max-w-4xl mx-auto w-full my-auto py-8 relative z-10 text-center">
+        {/* Logo Central Mediano */}
+        <div className="flex flex-col items-center justify-center mb-10">
+          <img
+            src="/logo.png"
+            alt="MML Enterprises Logo"
+            className="w-32 h-32 sm:w-36 sm:h-36 object-contain rounded-3xl p-3 bg-slate-900/80 border border-slate-800/90 shadow-2xl shadow-emerald-500/10 transition-transform hover:scale-105"
+          />
+          <h1 className="mt-4 text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+            MML ENTERPRISES
+          </h1>
+          <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-amber-400 mt-1">
+            Work OS Multi-Consola
+          </span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-          ¿Quién está ingresando hoy?
-        </h1>
-        <p className="text-sm text-slate-400 max-w-md mx-auto mb-10 leading-relaxed">
-          Selecciona tu perfil. Cada consola cuenta con su propia base de datos y tableros 100% aislados.
-        </p>
-
+        {/* Tarjetas de MELI y JHON */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
           {/* Tarjeta de MELI */}
           <div
@@ -115,7 +111,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
       <footer className="max-w-5xl mx-auto w-full pt-6 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-3 relative z-10">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-indigo-400" />
-          <span>Datos persistentes y cifrados en Neon PostgreSQL</span>
+          <span>Bases de datos aisladas y persistentes en Neon PostgreSQL</span>
         </div>
         <span>mml.solutions © 2026 • Todos los derechos reservados</span>
       </footer>
