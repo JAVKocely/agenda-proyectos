@@ -110,69 +110,11 @@ export const Topbar: React.FC<TopbarProps> = ({
           )}
         </div>
 
-        {/* Lado Derecho: Filtros Proyectos / Tareas + Perfil de Usuario (SIEMPRE Fijo a la Derecha) */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
-          {/* Botones de Filtro Proyectos / Tareas */}
-          <div className="flex items-center gap-1.5">
-            {/* Botón Proyectos (Violeta / Índigo) */}
-            <button
-              type="button"
-              onClick={() =>
-                onFilterTypeChange(filterType === 'projects' ? 'all' : 'projects')
-              }
-              className={`h-7 px-2.5 sm:px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
-                filterType === 'projects'
-                  ? 'btn-proyecto bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-indigo-400/60 shadow-md shadow-indigo-500/40'
-                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/80 hover:border-indigo-500/50 hover:text-indigo-300'
-              }`}
-              title={
-                filterType === 'projects'
-                  ? 'Filtro de proyectos activo (clic para ver todo)'
-                  : 'Filtrar y enfocar proyectos'
-              }
-            >
-              <FolderKanban className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="hidden sm:inline">Proyectos</span>
-            </button>
-
-            {/* Botón Tareas (Cyan / Turquesa) */}
-            <button
-              type="button"
-              onClick={() =>
-                onFilterTypeChange(filterType === 'tasks' ? 'all' : 'tasks')
-              }
-              className={`h-7 px-2.5 sm:px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
-                filterType === 'tasks'
-                  ? 'btn-tarea bg-gradient-to-r from-cyan-500 to-teal-500 text-white border-cyan-400/60 shadow-md shadow-cyan-500/40'
-                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/80 hover:border-cyan-500/50 hover:text-cyan-300'
-              }`}
-              title={
-                filterType === 'tasks'
-                  ? 'Filtro de tareas activo (clic para ver todo)'
-                  : 'Filtrar y enfocar tareas'
-              }
-            >
-              <CheckSquare className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="hidden sm:inline">Tareas</span>
-              {project && project.tasks.length > 0 && (
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    filterType === 'tasks'
-                      ? 'bg-cyan-950/40 text-cyan-200 font-bold'
-                      : 'bg-slate-800 text-slate-400'
-                  }`}
-                >
-                  {project.tasks.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Perfil de Usuario con Menú Desplegable (SIEMPRE a la extrema derecha) */}
-          <div className="relative flex-shrink-0" ref={menuRef}>
-
+        {/* Lado Derecho: Perfil de Usuario con Menú Desplegable (SIEMPRE a la extrema derecha) */}
+        <div className="relative flex-shrink-0" ref={menuRef}>
           {/* Botón Badge de Usuario Activo */}
           <button
+
             type="button"
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer shadow-sm group"
@@ -343,7 +285,6 @@ export const Topbar: React.FC<TopbarProps> = ({
           )}
         </div>
       </div>
-    </div>
 
       {/* Tabs de Vistas estilo Monday.com */}
       <div className="flex items-center justify-between gap-4 overflow-x-auto">
@@ -385,18 +326,78 @@ export const Topbar: React.FC<TopbarProps> = ({
           </button>
         </div>
 
-        {/* Buscador Rápido del Tablero */}
-        <div className="relative w-48 sm:w-60 mb-1.5">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={searchFilter}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar en el tablero..."
-            className="w-full bg-slate-900/90 border border-slate-800 rounded-lg pl-8 pr-3 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500"
-          />
+        {/* Filtros compactos y Buscador */}
+        <div className="flex items-center gap-2 mb-1.5 flex-shrink-0">
+          {/* Botones de Filtro Proyectos / Tareas (más pequeños y menos visibles) */}
+          <div className="flex items-center gap-1 bg-slate-900/60 p-0.5 rounded-full border border-slate-800/80">
+            {/* Botón Proyectos */}
+            <button
+              type="button"
+              onClick={() =>
+                onFilterTypeChange(filterType === 'projects' ? 'all' : 'projects')
+              }
+              className={`h-6 px-2.5 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                filterType === 'projects'
+                  ? 'bg-indigo-950/80 text-indigo-300 border border-indigo-500/40 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+              title={
+                filterType === 'projects'
+                  ? 'Filtro de proyectos activo (clic para ver todo)'
+                  : 'Filtrar proyectos'
+              }
+            >
+              <FolderKanban className="w-3 h-3 text-indigo-400/80" />
+              <span>Proyectos</span>
+            </button>
+
+            {/* Botón Tareas */}
+            <button
+              type="button"
+              onClick={() =>
+                onFilterTypeChange(filterType === 'tasks' ? 'all' : 'tasks')
+              }
+              className={`h-6 px-2.5 rounded-full text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                filterType === 'tasks'
+                  ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+              title={
+                filterType === 'tasks'
+                  ? 'Filtro de tareas activo (clic para ver todo)'
+                  : 'Filtrar tareas'
+              }
+            >
+              <CheckSquare className="w-3 h-3 text-cyan-400/80" />
+              <span>Tareas</span>
+              {project && project.tasks.length > 0 && (
+                <span
+                  className={`text-[9.5px] px-1 rounded-full font-mono ${
+                    filterType === 'tasks'
+                      ? 'bg-cyan-900/60 text-cyan-200 font-bold'
+                      : 'bg-slate-800 text-slate-400'
+                  }`}
+                >
+                  {project.tasks.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Buscador Rápido del Tablero */}
+          <div className="relative w-36 sm:w-48">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchFilter}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Buscar en el tablero..."
+              className="w-full bg-slate-900/90 border border-slate-800 rounded-lg pl-8 pr-3 py-1 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
         </div>
       </div>
     </div>
+
   );
 };
