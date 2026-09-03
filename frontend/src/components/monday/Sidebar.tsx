@@ -116,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
             <button
               onClick={onOpenManualModal}
-              className="btn-tarea h-9 w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-cyan-500/40 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs sm:text-[13px] font-bold shadow-md shadow-cyan-500/30 hover:shadow-cyan-500/50 leading-none"
+              className="btn-tarea h-9 w-full rounded-xl bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white border border-transparent flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs sm:text-[13px] font-bold shadow-md shadow-cyan-500/30 hover:shadow-cyan-500/50 leading-none"
               title="Crear una Tarea manual puntual"
             >
               <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />

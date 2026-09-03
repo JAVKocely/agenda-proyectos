@@ -9,6 +9,8 @@ import {
   ChevronDown,
   Sun,
   Moon,
+  FolderKanban,
+  CheckSquare,
 } from 'lucide-react';
 import type { ProjectDetail } from '../../types/project';
 
@@ -20,6 +22,8 @@ interface TopbarProps {
   onViewChange: (view: ActiveView) => void;
   searchFilter: string;
   onSearchChange: (val: string) => void;
+  filterType: 'all' | 'projects' | 'tasks';
+  onFilterTypeChange: (type: 'all' | 'projects' | 'tasks') => void;
   currentUser: string;
   onLogout: () => void;
   theme: 'dark' | 'light';
@@ -32,6 +36,8 @@ export const Topbar: React.FC<TopbarProps> = ({
   onViewChange,
   searchFilter,
   onSearchChange,
+  filterType,
+  onFilterTypeChange,
   currentUser,
   onLogout,
   theme,
@@ -65,7 +71,7 @@ export const Topbar: React.FC<TopbarProps> = ({
     <div className="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md sticky top-0 z-20 px-6 pt-4 pb-0">
       {/* Título y Acciones Principales */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
             {project ? project.title : 'Selecciona un Tablero'}
           </h1>
@@ -77,6 +83,62 @@ export const Topbar: React.FC<TopbarProps> = ({
               <Star className="w-4 h-4" />
             </button>
           )}
+
+          {/* Dos Botones Alargados Pequeños para Filtrar Proyectos y Tareas */}
+          <div className="flex items-center gap-2 ml-1 sm:ml-3">
+            {/* Botón Proyectos (Violeta / Índigo) */}
+            <button
+              type="button"
+              onClick={() =>
+                onFilterTypeChange(filterType === 'projects' ? 'all' : 'projects')
+              }
+              className={`h-7 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                filterType === 'projects'
+                  ? 'btn-proyecto bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-indigo-400/60 shadow-md shadow-indigo-500/40'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/80 hover:border-indigo-500/50 hover:text-indigo-300'
+              }`}
+              title={
+                filterType === 'projects'
+                  ? 'Filtro de proyectos activo (clic para ver todo)'
+                  : 'Filtrar y enfocar proyectos'
+              }
+            >
+              <FolderKanban className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Proyectos</span>
+            </button>
+
+            {/* Botón Tareas (Cyan / Turquesa) */}
+            <button
+              type="button"
+              onClick={() =>
+                onFilterTypeChange(filterType === 'tasks' ? 'all' : 'tasks')
+              }
+              className={`h-7 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                filterType === 'tasks'
+                  ? 'btn-tarea bg-gradient-to-r from-cyan-500 to-teal-500 text-white border-cyan-400/60 shadow-md shadow-cyan-500/40'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/80 hover:border-cyan-500/50 hover:text-cyan-300'
+              }`}
+              title={
+                filterType === 'tasks'
+                  ? 'Filtro de tareas activo (clic para ver todo)'
+                  : 'Filtrar y enfocar tareas'
+              }
+            >
+              <CheckSquare className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Tareas</span>
+              {project && project.tasks.length > 0 && (
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    filterType === 'tasks'
+                      ? 'bg-cyan-950/40 text-cyan-200 font-bold'
+                      : 'bg-slate-800 text-slate-400'
+                  }`}
+                >
+                  {project.tasks.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Perfil de Usuario con Menú Desplegable */}

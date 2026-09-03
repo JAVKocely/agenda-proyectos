@@ -34,6 +34,7 @@ export function App() {
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState<boolean>(false);
   const [projectToArchivePrompt, setProjectToArchivePrompt] = useState<ProjectDetail | null>(null);
+  const [filterType, setFilterType] = useState<'all' | 'projects' | 'tasks'>('all');
 
   // Estado del tema ('dark' | 'light')
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -132,18 +133,38 @@ export function App() {
     setSelectedProjectDetail(null);
   };
 
-  // Filtro de tareas en el tablero actual
+  // Filtro de tareas en el tablero actual con soporte para tipo de filtro (proyectos / tareas)
   const filteredTasks = useMemo(() => {
     if (!selectedProjectDetail) return [];
-    if (!boardSearch.trim()) return selectedProjectDetail.tasks;
+    const list = selectedProjectDetail.tasks;
     const query = boardSearch.toLowerCase().trim();
-    return selectedProjectDetail.tasks.filter(
+
+    if (filterType === 'tasks') {
+      if (!query) return list;
+      return list.filter(
+        (t) =>
+          t.title.toLowerCase().includes(query) ||
+          (t.description && t.description.toLowerCase().includes(query))
+      );
+    }
+
+    if (filterType === 'projects') {
+      if (!query) return list;
+      return list.filter(
+        (t) =>
+          selectedProjectDetail.title.toLowerCase().includes(query) ||
+          (t.group_name && t.group_name.toLowerCase().includes(query))
+      );
+    }
+
+    if (!query) return list;
+    return list.filter(
       (t) =>
         t.title.toLowerCase().includes(query) ||
         (t.group_name && t.group_name.toLowerCase().includes(query)) ||
         (t.description && t.description.toLowerCase().includes(query))
     );
-  }, [selectedProjectDetail, boardSearch]);
+  }, [selectedProjectDetail, boardSearch, filterType]);
 
   // Acciones de Proyectos
   const handleGenerateWithAI = async (prompt: string) => {
@@ -254,6 +275,8 @@ export function App() {
           onViewChange={setActiveView}
           searchFilter={boardSearch}
           onSearchChange={setBoardSearch}
+          filterType={filterType}
+          onFilterTypeChange={setFilterType}
           currentUser={currentUser}
           onLogout={handleLogout}
           theme={theme}
@@ -307,7 +330,7 @@ export function App() {
                 </button>
                 <button
                   onClick={() => setIsTaskModalOpen(true)}
-                  className="btn-tarea h-11 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-cyan-500/40 cursor-pointer flex items-center justify-center gap-2 text-sm font-bold shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-200 hover:scale-[1.02] leading-none"
+                  className="btn-tarea h-11 px-5 rounded-2xl bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white border border-transparent cursor-pointer flex items-center justify-center gap-2 text-sm font-bold shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-200 hover:scale-[1.02] leading-none"
                 >
                   <Plus className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
                   <span className="leading-none">Crear Tarea</span>
