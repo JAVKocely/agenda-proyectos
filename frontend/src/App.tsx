@@ -68,6 +68,25 @@ export function App() {
   const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Cargar detalle del proyecto seleccionado
+  const loadProjectDetail = useCallback(async (id: string, isSilent = false) => {
+    try {
+      if (!isSilent) {
+        setIsDetailLoading(true);
+      }
+      const detail = await projectsApi.getProject(id);
+      setSelectedProjectDetail(detail);
+      return detail;
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error al cargar el detalle del proyecto');
+      return null;
+    } finally {
+      if (!isSilent) {
+        setIsDetailLoading(false);
+      }
+    }
+  }, []);
+
   // Cargar lista de proyectos del usuario activo
   const loadProjects = useCallback(async () => {
     if (!currentUser) return;
@@ -79,18 +98,21 @@ export function App() {
 
       if (data.length > 0) {
         setSelectedProjectId((prev) => {
-          const exists = data.some((p) => p.id === prev);
-          return exists ? prev : data[0].id;
+          const nextId = prev && data.some((p) => p.id === prev) ? prev : data[0].id;
+          // Cargar inmediatamente el detalle para asegurar que la tabla se monte
+          loadProjectDetail(nextId);
+          return nextId;
         });
       } else {
         setSelectedProjectId(null);
+        setSelectedProjectDetail(null);
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Error al conectar con la API de proyectos');
     } finally {
       setIsLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, loadProjectDetail]);
 
   useEffect(() => {
     if (currentUser) {
@@ -120,25 +142,6 @@ export function App() {
     setIsCreateUserModalOpen(false);
     handleSelectUser(newUser.id);
   };
-
-  // Cargar detalle del proyecto seleccionado
-  const loadProjectDetail = useCallback(async (id: string, isSilent = false) => {
-    try {
-      if (!isSilent) {
-        setIsDetailLoading(true);
-      }
-      const detail = await projectsApi.getProject(id);
-      setSelectedProjectDetail(detail);
-      return detail;
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Error al cargar el detalle del proyecto');
-      return null;
-    } finally {
-      if (!isSilent) {
-        setIsDetailLoading(false);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (selectedProjectId) {
@@ -347,7 +350,10 @@ export function App() {
       <Sidebar
         projects={projects}
         selectedProjectId={selectedProjectId}
-        onSelectProject={(id) => setSelectedProjectId(id)}
+        onSelectProject={(id) => {
+          setSelectedProjectId(id);
+          loadProjectDetail(id);
+        }}
         onOpenAiModal={() => setIsAiModalOpen(true)}
         onOpenManualModal={() => setIsTaskModalOpen(true)}
         isCollapsed={isSidebarCollapsed}
@@ -383,12 +389,26 @@ export function App() {
               <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
               <span>{errorMessage}</span>
             </div>
-            <button
-              onClick={() => setErrorMessage(null)}
-              className="text-rose-400 hover:text-white underline cursor-pointer text-xs"
-            >
-              Descartar
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setErrorMessage(null);
+                  loadProjects();
+                  if (selectedProjectId) {
+                    loadProjectDetail(selectedProjectId);
+                  }
+                }}
+                className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 font-bold cursor-pointer text-xs transition-colors"
+              >
+                Reintentar
+              </button>
+              <button
+                onClick={() => setErrorMessage(null)}
+                className="text-rose-400 hover:text-white underline cursor-pointer text-xs"
+              >
+                Descartar
+              </button>
+            </div>
           </div>
         )}
 
@@ -408,7 +428,7 @@ export function App() {
                 </div>
               </div>
               <h2 className="text-xl font-bold text-white mb-2">
-                Consola privada de {currentUser === 'meli' ? 'Meli' : 'Jhon'}
+                Consola privada de {currentUser === 'meli' ? 'Meli' : currentUser === 'jhon' ? 'Jhon' : currentUser}
               </h2>
               <p className="text-xs text-slate-400 mb-6 leading-relaxed">
                 Este espacio de trabajo te pertenece exclusivamente a ti. Puedes crear un proyecto completo estructurado con IA o agregar tareas individuales.
@@ -429,7 +449,27 @@ export function App() {
                   <span className="leading-none">Crear Tarea</span>
                 </button>
               </div>
+
+              {/* Acceso rápido a otras consolas si esta está vacía */}
+              {users.filter((u) => u.id !== currentUser).length > 0 && (
+                <div className="mt-8 pt-5 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
+                  <span>¿Deseas revisar otra consola?</span>
+                  {users
+                    .filter((u) => u.id !== currentUser)
+                    .map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => handleSelectUser(u.id)}
+                        className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold hover:text-white transition-colors cursor-pointer"
+                      >
+                        Entrar a consola de {u.name} →
+                      </button>
+                    ))}
+                </div>
+              )}
             </div>
+
           ) : !selectedProjectDetail ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
               {isDetailLoading ? (
