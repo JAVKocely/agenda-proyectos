@@ -20,7 +20,7 @@ interface TopbarProps {
   onViewChange: (view: ActiveView) => void;
   searchFilter: string;
   onSearchChange: (val: string) => void;
-  currentUser: 'meli' | 'jhon';
+  currentUser: string;
   onLogout: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: (theme: 'dark' | 'light') => void;
@@ -37,7 +37,12 @@ export const Topbar: React.FC<TopbarProps> = ({
   theme,
   onToggleTheme,
 }) => {
-  const isMeli = currentUser === 'meli';
+  const userInitial = (currentUser.charAt(0) || 'U').toUpperCase();
+  const isMeli = currentUser.toLowerCase() === 'meli';
+  const avatarGradient = isMeli
+    ? 'bg-gradient-to-tr from-fuchsia-500 to-rose-500'
+    : 'bg-gradient-to-tr from-indigo-500 via-cyan-500 to-teal-400';
+
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -84,13 +89,9 @@ export const Topbar: React.FC<TopbarProps> = ({
             title="Abrir menú de usuario"
           >
             <div
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-sm transition-transform group-hover:scale-105 ${
-                isMeli
-                  ? 'bg-gradient-to-tr from-fuchsia-500 to-rose-500'
-                  : 'bg-gradient-to-tr from-indigo-500 to-cyan-500'
-              }`}
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-sm transition-transform group-hover:scale-105 ${avatarGradient}`}
             >
-              {isMeli ? 'M' : 'J'}
+              {userInitial}
             </div>
             <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
               {currentUser}
@@ -108,13 +109,9 @@ export const Topbar: React.FC<TopbarProps> = ({
               {/* Header de Información de Usuario */}
               <div className="flex items-center gap-3 p-2.5 pb-3 border-b border-slate-800/80 mb-2">
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md ${
-                    isMeli
-                      ? 'bg-gradient-to-tr from-fuchsia-500 to-rose-500 shadow-fuchsia-500/20'
-                      : 'bg-gradient-to-tr from-indigo-500 to-cyan-500 shadow-cyan-500/20'
-                  }`}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md ${avatarGradient}`}
                 >
-                  {isMeli ? 'M' : 'J'}
+                  {userInitial}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-white leading-tight uppercase tracking-wide truncate">

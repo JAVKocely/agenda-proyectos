@@ -73,3 +73,10 @@ export interface TaskUpdatePayload {
 export interface AIGeneratePayload {
   prompt: string;
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  color?: string;
+  created_at?: string;
+}

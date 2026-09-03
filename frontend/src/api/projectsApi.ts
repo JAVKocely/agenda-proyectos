@@ -8,9 +8,22 @@ import type {
   TaskCreatePayload,
   TaskUpdatePayload,
   AIGeneratePayload,
+  UserProfile,
 } from '../types/project';
 
 export const projectsApi = {
+  // Usuarios
+  async getUsers(): Promise<UserProfile[]> {
+    return request<UserProfile[]>('/users');
+  },
+
+  async createUser(payload: { name: string; color?: string }): Promise<UserProfile> {
+    return request<UserProfile>('/users', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
   // Proyectos
   async getProjects(status?: string, search?: string): Promise<ProjectSummary[]> {
     const params = new URLSearchParams();

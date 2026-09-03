@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def run_auto_migrations():
     """
-    Asegura que las columnas añadidas recientemente (como user_id)
+    Asegura que las tablas y columnas añadidas recientemente (como user_id y la tabla users)
     existan en la base de datos (PostgreSQL/SQLite) sin necesidad de migraciones manuales.
     """
     try:
@@ -28,15 +28,47 @@ def run_auto_migrations():
             if "postgres" in engine.url.drivername:
                 conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS user_id VARCHAR(50) DEFAULT 'meli';"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects (user_id);"))
-                logger.info("Migración automática: columna user_id verificada en PostgreSQL.")
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        id VARCHAR(50) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        color VARCHAR(50) DEFAULT 'indigo',
+                        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                    );
+                """))
+                conn.execute(text("""
+                    INSERT INTO users (id, name, color)
+                    VALUES 
+                        ('meli', 'MELI', 'fuchsia'),
+                        ('jhon', 'JHON', 'cyan')
+                    ON CONFLICT (id) DO NOTHING;
+                """))
+                logger.info("Migración automática: columna user_id y tabla users verificadas en PostgreSQL.")
             else:
                 # Para SQLite local
                 try:
                     conn.execute(text("ALTER TABLE projects ADD COLUMN user_id VARCHAR(50) DEFAULT 'meli';"))
                 except Exception:
                     pass  # Columna ya existe
+                try:
+                    conn.execute(text("""
+                        CREATE TABLE IF NOT EXISTS users (
+                            id VARCHAR(50) PRIMARY KEY,
+                            name VARCHAR(100) NOT NULL,
+                            color VARCHAR(50) DEFAULT 'indigo',
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        );
+                    """))
+                    conn.execute(text("""
+                        INSERT OR IGNORE INTO users (id, name, color)
+                        VALUES 
+                            ('meli', 'MELI', 'fuchsia'),
+                            ('jhon', 'JHON', 'cyan');
+                    """))
+                except Exception:
+                    pass
     except Exception as e:
-        logger.error("Error al verificar/migrar columnas de base de datos: %s", e)
+        logger.error("Error al verificar/migrar columnas y tablas de base de datos: %s", e)
 
 
 @asynccontextmanager

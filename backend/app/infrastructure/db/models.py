@@ -80,3 +80,12 @@ class TaskModel(Base):
         Index("idx_tasks_project_id", "project_id"),
         Index("idx_tasks_order", "project_id", "order"),
     )
+
+
+class UserModel(Base):
+    __tablename__ = "users"
+
+    id = Column(String(50), primary_key=True)
+    name = Column(String(100), nullable=False)
+    color = Column(String(50), nullable=True, default="indigo")
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)

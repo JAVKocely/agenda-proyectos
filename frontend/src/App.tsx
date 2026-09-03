@@ -4,7 +4,7 @@ import { Topbar, type ActiveView } from './components/monday/Topbar';
 import { MainTable } from './components/monday/MainTable';
 import { KanbanView } from './components/monday/KanbanView';
 import { TimelineView } from './components/monday/TimelineView';
-import { LoginScreen, type UserId } from './components/auth/LoginScreen';
+import { LoginScreen } from './components/auth/LoginScreen';
 import { AiProjectCreationModal } from './components/ai/AiProjectCreationModal';
 import { TaskModal } from './components/dashboard/TaskModal';
 import { projectsApi } from './api/projectsApi';
@@ -18,13 +18,9 @@ import type {
 import { AlertCircle, Loader2, Sparkles, FolderKanban, Plus } from 'lucide-react';
 
 export function App() {
-  // Estado del usuario activo ('meli' | 'jhon' | null)
-  const [currentUser, setCurrentUser] = useState<UserId | null>(() => {
-    const saved = localStorage.getItem('mml_active_user');
-    if (saved === 'meli' || saved === 'jhon') {
-      return saved;
-    }
-    return null;
+  // Estado del usuario activo (string | null)
+  const [currentUser, setCurrentUser] = useState<string | null>(() => {
+    return localStorage.getItem('mml_active_user') || null;
   });
 
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -118,7 +114,7 @@ export function App() {
   }, [selectedProjectId, loadProjectDetail]);
 
   // Manejo de Inicio y Cierre de Sesión
-  const handleSelectUser = (user: UserId) => {
+  const handleSelectUser = (user: string) => {
     localStorage.setItem('mml_active_user', user);
     setCurrentUser(user);
     setSelectedProjectId(null);

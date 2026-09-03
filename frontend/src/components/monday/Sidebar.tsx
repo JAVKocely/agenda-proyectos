@@ -17,7 +17,7 @@ interface SidebarProps {
   onOpenManualModal: () => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
-  currentUser: 'meli' | 'jhon';
+  currentUser: string;
   onLogout: () => void;
 }
 
@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   isMeli ? 'bg-fuchsia-500 shadow-sm shadow-fuchsia-500/50' : 'bg-cyan-400 shadow-sm shadow-cyan-400/50'
                 }`}
               />
-              <span className="truncate font-bold">Consola de {isMeli ? 'Meli' : 'Jhon'}</span>
+              <span className="truncate font-bold">Consola de {currentUser.toUpperCase()}</span>
             </div>
             <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
               {currentUser}

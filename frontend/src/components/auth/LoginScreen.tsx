@@ -1,13 +1,54 @@
-import React from 'react';
-import { ShieldCheck, ArrowRight } from 'lucide-react';
-
-export type UserId = 'meli' | 'jhon';
+import React, { useState, useEffect } from 'react';
+import { ShieldCheck, ArrowRight, UserPlus, Sparkles } from 'lucide-react';
+import { projectsApi } from '../../api/projectsApi';
+import { CreateUserModal, COLOR_THEMES } from './CreateUserModal';
+import type { UserProfile } from '../../types/project';
 
 interface LoginScreenProps {
-  onSelectUser: (user: UserId) => void;
+  onSelectUser: (userId: string) => void;
 }
 
+const DEFAULT_USERS: UserProfile[] = [
+  { id: 'meli', name: 'MELI', color: 'fuchsia' },
+  { id: 'jhon', name: 'JHON', color: 'cyan' },
+];
+
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
+  const [users, setUsers] = useState<UserProfile[]>(DEFAULT_USERS);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Cargar usuarios desde la base de datos
+  useEffect(() => {
+    let isMounted = true;
+    const loadUsers = async () => {
+      try {
+        const data = await projectsApi.getUsers();
+        if (isMounted && data && data.length > 0) {
+          setUsers(data);
+        }
+      } catch {
+        // En caso de fallo de red inicial, mantener usuarios por defecto
+      }
+    };
+    loadUsers();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleUserCreated = (newUser: UserProfile) => {
+    setUsers((prev) => {
+      const exists = prev.some((u) => u.id === newUser.id);
+      return exists ? prev : [...prev, newUser];
+    });
+    // Ingresar de inmediato a la nueva consola creada
+    onSelectUser(newUser.id);
+  };
+
+  const getThemeForUser = (color?: string) => {
+    return COLOR_THEMES.find((c) => c.id === color) || COLOR_THEMES[1];
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-6 sm:p-12 relative overflow-hidden font-sans select-none">
       {/* Luces de Fondo Decorativas Suaves */}
@@ -15,15 +56,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Superior Minimalista */}
-      <header className="flex items-center justify-end max-w-5xl mx-auto w-full relative z-10">
+      <header className="flex items-center justify-between max-w-5xl mx-auto w-full relative z-10">
+        <button
+          type="button"
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-white transition-all cursor-pointer shadow-sm hover:scale-105"
+          title="Crear un nuevo usuario con base de datos independiente"
+        >
+          <UserPlus className="w-3.5 h-3.5 text-cyan-400" />
+          <span>+ Agregar Usuario</span>
+        </button>
+
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800 text-[11px] text-emerald-400 font-medium">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>Sistema Seguro en Línea</span>
         </div>
       </header>
 
-      {/* Contenido Central: Logo en Negativo (Sin marco y el doble de grande) + Tarjetas */}
-      <main className="max-w-4xl mx-auto w-full my-auto py-6 relative z-10 text-center">
+      {/* Contenido Central: Logo en Negativo + Tarjetas de Usuarios */}
+      <main className="max-w-5xl mx-auto w-full my-auto py-6 relative z-10 text-center">
         {/* Logo Central en Negativo, Sin Marco y Tamaño Grande */}
         <div className="flex items-center justify-center mb-10">
           <img
@@ -33,65 +84,71 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
           />
         </div>
 
-        {/* Tarjetas de MELI y JHON */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {/* Tarjeta de MELI */}
-          <div
-            onClick={() => onSelectUser('meli')}
-            className="group relative bg-gradient-to-b from-slate-900/80 to-slate-950 border border-slate-800 hover:border-fuchsia-500/60 rounded-3xl p-8 transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-fuchsia-500/10 cursor-pointer flex flex-col items-center text-center"
-          >
-            {/* Avatar Meli */}
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-fuchsia-500 via-rose-500 to-amber-400 p-1 mb-5 shadow-xl shadow-fuchsia-500/20 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                M
+        {/* Tarjetas de Usuarios Registrados */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          {users.map((user) => {
+            const theme = getThemeForUser(user.color);
+            const initial = (user.name.charAt(0) || 'U').toUpperCase();
+
+            return (
+              <div
+                key={user.id}
+                onClick={() => onSelectUser(user.id)}
+                className="group relative bg-gradient-to-b from-slate-900/80 to-slate-950 border border-slate-800 hover:border-slate-700 rounded-3xl p-7 transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer flex flex-col items-center text-center"
+              >
+                {/* Avatar con gradiente personalizado */}
+                <div className={`w-20 h-20 rounded-full bg-gradient-to-tr ${theme.gradient} p-1 mb-4 shadow-xl transition-transform group-hover:scale-105`}>
+                  <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                    {initial}
+                  </div>
+                </div>
+
+                <div className="inline-block px-2.5 py-0.5 rounded-full bg-slate-800/80 text-slate-300 text-[11px] font-semibold mb-2">
+                  Consola Personal
+                </div>
+
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight truncate max-w-[200px] uppercase">
+                  {user.name}
+                </h2>
+
+                <p className="text-xs text-slate-400 mb-6 leading-relaxed line-clamp-2">
+                  Proyectos, tareas por fases, cronogramas y métricas 100% aisladas.
+                </p>
+
+                <button
+                  type="button"
+                  className={`w-full mt-auto py-2.5 px-4 rounded-xl bg-gradient-to-r ${theme.gradient} text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer`}
+                >
+                  <span>Entrar como {user.name}</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
               </div>
+            );
+          })}
+
+          {/* Tarjeta para "+ Agregar Usuario" */}
+          <div
+            onClick={() => setIsCreateModalOpen(true)}
+            className="group relative bg-slate-950/40 border-2 border-dashed border-slate-800 hover:border-indigo-500/80 rounded-3xl p-7 transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10 cursor-pointer flex flex-col items-center justify-center text-center min-h-[320px]"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 group-hover:border-indigo-500/50 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+              <UserPlus className="w-8 h-8 text-indigo-400 group-hover:text-indigo-300" />
             </div>
 
-            <div className="inline-block px-2.5 py-0.5 rounded-full bg-fuchsia-500/10 text-fuchsia-400 text-[11px] font-semibold mb-2">
-              Consola Personal
-            </div>
+            <h3 className="text-lg font-bold text-white mb-1.5 group-hover:text-indigo-300 transition-colors">
+              Agregar Usuario
+            </h3>
 
-            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight group-hover:text-fuchsia-300 transition-colors">
-              MELI
-            </h2>
-
-            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-              Accede a tus proyectos, tareas por fases, cronogramas y métricas privadas.
+            <p className="text-xs text-slate-400 max-w-xs mb-6 leading-relaxed">
+              Crea una consola independiente con base de datos propia para un nuevo integrante o departamento.
             </p>
 
-            <button className="w-full mt-auto py-2.5 px-4 rounded-xl bg-gradient-to-r from-fuchsia-600 to-rose-600 group-hover:from-fuchsia-500 group-hover:to-rose-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-600/25 transition-all">
-              <span>Entrar como Meli</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-
-          {/* Tarjeta de JHON */}
-          <div
-            onClick={() => onSelectUser('jhon')}
-            className="group relative bg-gradient-to-b from-slate-900/80 to-slate-950 border border-slate-800 hover:border-cyan-500/60 rounded-3xl p-8 transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/10 cursor-pointer flex flex-col items-center text-center"
-          >
-            {/* Avatar Jhon */}
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-500 via-cyan-500 to-teal-400 p-1 mb-5 shadow-xl shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                J
-              </div>
-            </div>
-
-            <div className="inline-block px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 text-[11px] font-semibold mb-2">
-              Consola Personal
-            </div>
-
-            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight group-hover:text-cyan-300 transition-colors">
-              JHON
-            </h2>
-
-            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-              Accede a tus proyectos, tareas por fases, cronogramas y métricas privadas.
-            </p>
-
-            <button className="w-full mt-auto py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 group-hover:from-indigo-500 group-hover:to-cyan-400 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all">
-              <span>Entrar como Jhon</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <button
+              type="button"
+              className="py-2 px-4 rounded-xl bg-slate-900 group-hover:bg-indigo-600 text-slate-300 group-hover:text-white border border-slate-800 group-hover:border-transparent text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Crear Espacio</span>
             </button>
           </div>
         </div>
@@ -105,6 +162,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
         </div>
         <span>mml.solutions © 2026 • Todos los derechos reservados</span>
       </footer>
+
+      {/* Modal para Crear Usuario */}
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onUserCreated={handleUserCreated}
+      />
     </div>
   );
 };

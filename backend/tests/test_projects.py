@@ -135,3 +135,47 @@ def test_multi_user_data_isolation(client):
 
     # Meli no puede acceder por ID al proyecto de Jhon
     assert client.get(f"/api/v1/projects/{jhon_proj_id}", headers={"X-User-Id": "meli"}).status_code == 404
+
+
+def test_user_creation_and_dynamic_isolation(client):
+    """
+    Verifica que se pueden crear nuevos usuarios dinámicamente y que sus datos
+    quedan 100% aislados de cualquier otro usuario existente.
+    """
+    # 1. Listar usuarios: deben existir por defecto meli y jhon
+    res_users = client.get("/api/v1/users")
+    assert res_users.status_code == 200
+    users = res_users.json()
+    user_ids = [u["id"] for u in users]
+    assert "meli" in user_ids
+    assert "jhon" in user_ids
+
+    # 2. Crear un nuevo usuario: "Carlos"
+    create_res = client.post(
+        "/api/v1/users",
+        json={"name": "Carlos Gomez", "color": "emerald"}
+    )
+    assert create_res.status_code == 201
+    new_user = create_res.json()
+    assert new_user["id"].startswith("carlos")
+    assert new_user["name"] == "Carlos Gomez"
+    assert new_user["color"] == "emerald"
+
+    # 3. Carlos crea su propio proyecto
+    carlos_id = new_user["id"]
+    res_carlos = client.post(
+        "/api/v1/projects",
+        json={"title": "Proyecto de Carlos"},
+        headers={"X-User-Id": carlos_id}
+    )
+    assert res_carlos.status_code == 201
+    carlos_proj_id = res_carlos.json()["id"]
+
+    # 4. Carlos solo ve su proyecto
+    carlos_list = client.get("/api/v1/projects", headers={"X-User-Id": carlos_id}).json()
+    assert len(carlos_list) == 1
+    assert carlos_list[0]["title"] == "Proyecto de Carlos"
+
+    # 5. Jhon o Meli no pueden ver el proyecto de Carlos
+    jhon_list = client.get("/api/v1/projects", headers={"X-User-Id": "jhon"}).json()
+    assert carlos_proj_id not in [p["id"] for p in jhon_list]

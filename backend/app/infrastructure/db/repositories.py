@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, or_
-from app.infrastructure.db.models import ProjectModel, TaskModel
+from app.infrastructure.db.models import ProjectModel, TaskModel, UserModel
 from app.domain.enums import ProjectStatus, TaskStatus
 
 
@@ -152,3 +152,35 @@ class TaskRepository:
         self.db.delete(task)
         self.db.commit()
         return True
+
+
+class UserRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_all(self) -> List[UserModel]:
+        stmt = select(UserModel).order_by(UserModel.created_at.asc())
+        users = list(self.db.execute(stmt).scalars().all())
+        # Garantizar que al menos meli y jhon siempre estén presentes
+        if not users:
+            meli = UserModel(id="meli", name="MELI", color="fuchsia")
+            jhon = UserModel(id="jhon", name="JHON", color="cyan")
+            self.db.add_all([meli, jhon])
+            self.db.commit()
+            return [meli, jhon]
+        return users
+
+    def get_by_id(self, user_id: str) -> Optional[UserModel]:
+        stmt = select(UserModel).filter(UserModel.id == user_id)
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def create(self, user_id: str, name: str, color: Optional[str] = None) -> UserModel:
+        user = UserModel(
+            id=user_id,
+            name=name,
+            color=color or "indigo"
+        )
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
