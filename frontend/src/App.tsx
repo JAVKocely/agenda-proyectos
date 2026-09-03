@@ -285,9 +285,9 @@ export function App() {
                 </button>
                 <button
                   onClick={() => setIsTaskModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 cursor-pointer flex items-center gap-1.5"
+                  className="btn-tarea px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 cursor-pointer flex items-center gap-2 text-sm font-bold shadow-sm transition-all"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>Crear Tarea</span>
                 </button>
               </div>

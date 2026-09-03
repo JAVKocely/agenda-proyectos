@@ -133,6 +133,27 @@ html.light [class*="from-indigo-600"] * {
   color: #ffffff !important;
 }
 
+/* =========================================================
+   REGLA ESTRICTA: Botón Tarea en Modo Claro
+   Letra NEGRA completamente (#000000) y de mayor peso
+   ========================================================= */
+html.light .btn-tarea,
+html.light .btn-tarea * {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+html.light .btn-tarea {
+  background-color: #ffffff !important;
+  border-color: #94a3b8 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.light .btn-tarea:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #475569 !important;
+}
+
 /* Estados Hover */
 html.light .hover\:bg-slate-900:hover {
   background-color: #f1f5f9 !important;

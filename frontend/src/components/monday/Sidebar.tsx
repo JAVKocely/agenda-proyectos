@@ -101,18 +101,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="grid grid-cols-2 gap-1.5 mt-2.5">
             <button
               onClick={onOpenAiModal}
-              className="py-1.5 px-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-[11px] font-semibold flex items-center justify-center gap-1 shadow-sm transition-all cursor-pointer"
+              className="py-2 px-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs sm:text-[13px] font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
               title="Crear un Proyecto / Tablero completo con IA"
             >
-              <Sparkles className="w-3 h-3" />
+              <Sparkles className="w-3.5 h-3.5" />
               <span>Proyecto</span>
             </button>
             <button
               onClick={onOpenManualModal}
-              className="py-1.5 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 text-[11px] font-medium border border-slate-800 flex items-center justify-center gap-1 transition-all cursor-pointer"
+              className="btn-tarea py-2 px-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs sm:text-[13px] font-bold shadow-sm"
               title="Crear una Tarea manual puntual"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-3.5 h-3.5" />
               <span>Tarea</span>
             </button>
           </div>
