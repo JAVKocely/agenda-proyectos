@@ -7,7 +7,6 @@ import { TimelineView } from './components/monday/TimelineView';
 import { LoginScreen, type UserId } from './components/auth/LoginScreen';
 import { AiProjectCreationModal } from './components/ai/AiProjectCreationModal';
 import { ManualProjectModal } from './components/dashboard/ManualProjectModal';
-import { AddTaskModal } from './components/detail/AddTaskModal';
 import { projectsApi } from './api/projectsApi';
 import type {
   ProjectSummary,
@@ -39,7 +38,6 @@ export function App() {
 
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
-  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false);
@@ -196,7 +194,6 @@ export function App() {
           onViewChange={setActiveView}
           searchFilter={boardSearch}
           onSearchChange={setBoardSearch}
-          onOpenAddTaskModal={() => setIsAddTaskModalOpen(true)}
           currentUser={currentUser}
           onLogout={handleLogout}
         />
@@ -303,12 +300,6 @@ export function App() {
         isOpen={isManualModalOpen}
         onClose={() => setIsManualModalOpen(false)}
         onCreate={handleCreateProjectManual}
-      />
-
-      <AddTaskModal
-        isOpen={isAddTaskModalOpen}
-        onClose={() => setIsAddTaskModalOpen(false)}
-        onAddTask={handleAddTask}
       />
     </div>
   );

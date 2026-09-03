@@ -3,7 +3,6 @@ import {
   Table,
   Kanban,
   Calendar,
-  Plus,
   Search,
   Star,
   LogOut,
@@ -18,7 +17,6 @@ interface TopbarProps {
   onViewChange: (view: ActiveView) => void;
   searchFilter: string;
   onSearchChange: (val: string) => void;
-  onOpenAddTaskModal: () => void;
   currentUser: 'meli' | 'jhon';
   onLogout: () => void;
 }
@@ -29,7 +27,6 @@ export const Topbar: React.FC<TopbarProps> = ({
   onViewChange,
   searchFilter,
   onSearchChange,
-  onOpenAddTaskModal,
   currentUser,
   onLogout,
 }) => {
@@ -70,14 +67,6 @@ export const Topbar: React.FC<TopbarProps> = ({
               {currentUser}
             </span>
           </div>
-
-          <button
-            onClick={onOpenAddTaskModal}
-            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Nuevo Elemento</span>
-          </button>
 
           <button
             onClick={onLogout}
