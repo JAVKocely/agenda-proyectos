@@ -192,7 +192,7 @@ export const MainTable: React.FC<MainTableProps> = ({
                     <tr className="border-b border-slate-200 dark:border-slate-800/80 text-[11px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-950/40">
                       <th className="w-14 px-2 py-2.5 text-center">#</th>
                       <th className="px-4 py-2.5 min-w-[260px]">Elemento / Tarea</th>
-                      <th className="w-24 px-3 py-2.5 text-center">Responsable</th>
+                      <th className="w-36 min-w-[130px] px-3 py-2.5 text-center">Responsable</th>
                       <th className="w-32 px-3 py-2.5 text-center">Estado</th>
                       <th className="w-28 px-3 py-2.5 text-center">Prioridad</th>
                       <th className="w-28 px-3 py-2.5 text-center">Duración</th>
@@ -266,7 +266,7 @@ export const MainTable: React.FC<MainTableProps> = ({
                           </td>
 
                           {/* Avatar / Persona asignada interactiva con desplegable */}
-                          <td className="px-3 py-2.5 text-center">
+                          <td className="px-3 py-2.5 text-center whitespace-nowrap">
                             <ResponsibleCell
                               assignedTo={task.assigned_to}
                               users={users}
