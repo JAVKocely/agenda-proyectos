@@ -421,15 +421,12 @@ export function App() {
               <p className="text-sm font-medium">Cargando consola de {currentUser === 'meli' ? 'Meli' : 'Jhon'}...</p>
             </div>
           ) : projects.length === 0 ? (
-            /* Marca de Agua Gigante de la Carpeta Minimalista (sin cuadros ni texto) */
-            <div className="h-[75vh] flex items-center justify-center pointer-events-none select-none">
-              <div className="relative flex items-center justify-center">
-                <div className="absolute w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-600/10 via-cyan-500/5 to-transparent blur-3xl pointer-events-none" />
-                <FolderKanban
-                  className="w-72 h-72 sm:w-96 sm:h-96 text-slate-200/50 dark:text-slate-800/40 transition-all duration-300 drop-shadow-2xl"
-                  strokeWidth={0.9}
-                />
-              </div>
+            /* Marca de Agua de la Carpeta Tenue y Mediana */
+            <div className="h-[70vh] flex items-center justify-center pointer-events-none select-none">
+              <FolderKanban
+                className="w-32 h-32 sm:w-40 sm:h-40 text-slate-400/20 dark:text-slate-700/25 transition-opacity"
+                strokeWidth={0.8}
+              />
             </div>
           ) : !selectedProjectDetail ? (
             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -439,17 +436,15 @@ export function App() {
                   <p className="text-xs">Cargando tablero...</p>
                 </>
               ) : (
-                <div className="h-[75vh] flex items-center justify-center pointer-events-none select-none">
-                  <div className="relative flex items-center justify-center">
-                    <div className="absolute w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-600/10 via-cyan-500/5 to-transparent blur-3xl pointer-events-none" />
-                    <FolderKanban
-                      className="w-72 h-72 sm:w-96 sm:h-96 text-slate-200/50 dark:text-slate-800/40 transition-all duration-300 drop-shadow-2xl"
-                      strokeWidth={0.9}
-                    />
-                  </div>
+                <div className="h-[70vh] flex items-center justify-center pointer-events-none select-none">
+                  <FolderKanban
+                    className="w-32 h-32 sm:w-40 sm:h-40 text-slate-400/20 dark:text-slate-700/25 transition-opacity"
+                    strokeWidth={0.8}
+                  />
                 </div>
               )}
             </div>
+
 
           ) : (
             /* Render de Vistas Dinámicas */
