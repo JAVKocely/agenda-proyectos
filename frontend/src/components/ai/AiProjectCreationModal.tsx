@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Bot, AlertCircle, Code2, Terminal, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, Bot, AlertCircle, Cpu, CheckCircle2 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 
@@ -8,6 +8,21 @@ interface AiProjectCreationModalProps {
   onClose: () => void;
   onGenerate: (prompt: string) => Promise<void>;
 }
+
+export type ArchitectureType = 'software' | 'general';
+
+const ARCHITECTURE_OPTIONS: { id: ArchitectureType; label: string; description: string }[] = [
+  {
+    id: 'software',
+    label: 'Software (AI-SDLC)',
+    description: 'Protocolo estricto de ingeniería en 5 fases (Especificación, Arquitectura, Core, IA y QA).',
+  },
+  {
+    id: 'general',
+    label: 'General / Negocios',
+    description: 'Planificación flexible orientada a proyectos comerciales, operativos o creativos.',
+  },
+];
 
 const SOP_AI_SDLC_BODY = `# STANDARD OPERATING PROCEDURE (SOP): INGENIERÍA Y CONSTRUCCIÓN DE SOFTWARE ASISTIDA POR IA (AI-SDLC)
 
@@ -137,17 +152,21 @@ Vamos a desarrollar el siguiente software: [DESCRIBIR IDEA / PROYECTO AQUÍ].
 Comienza ejecutando ÚNICAMENTE la FASE 1: ESPECIFICACIÓN TÉCNICA Y REQUERIMIENTOS.
 Presenta la descomposición del sistema, entidades y contratos propuestos para mi aprobación antes de continuar."`;
 
-export function generateSoftwarePrompt(softwareIdea: string): string {
-  const idea = softwareIdea.trim() || '[aqui ira la idea]';
-  return `Actúa como un Arquitecto de Software Principal e Ingeniero Full Stack Senior.
+function buildPromptForSubmission(architecture: ArchitectureType, userIdea: string): string {
+  const cleanIdea = userIdea.trim();
+  if (architecture === 'software') {
+    return `Actúa como un Arquitecto de Software Principal e Ingeniero Full Stack Senior.
 Nos regiremos estrictamente por el 'STANDARD OPERATING PROCEDURE (AI-SDLC)'.
 No generes código monolítico de golpe.
-Vamos a desarrollar el siguiente software: ${idea}
+Vamos a desarrollar el siguiente software: ${cleanIdea}
 
 Comienza ejecutando ÚNICAMENTE la FASE 1: ESPECIFICACIÓN TÉCNICA Y REQUERIMIENTOS.
 Presenta la descomposición del sistema, entidades y contratos propuestos para mi aprobación antes de continuar.
 
 ${SOP_AI_SDLC_BODY}`;
+  }
+
+  return cleanIdea;
 }
 
 export const AiProjectCreationModal: React.FC<AiProjectCreationModalProps> = ({
@@ -155,62 +174,31 @@ export const AiProjectCreationModal: React.FC<AiProjectCreationModalProps> = ({
   onClose,
   onGenerate,
 }) => {
-  const [prompt, setPrompt] = useState('');
-  const [softwareIdeaInput, setSoftwareIdeaInput] = useState('');
-  const [isSoftwareMode, setIsSoftwareMode] = useState(false);
+  const [architectureType, setArchitectureType] = useState<ArchitectureType>('software');
+  const [ideaText, setIdeaText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const softwareInputRef = useRef<HTMLInputElement>(null);
-
-  // Activar modo Idea (Software)
-  const handleSelectIdeaSoftware = () => {
-    setIsSoftwareMode(true);
-    const initialIdea = softwareIdeaInput.trim() || 'Sistema SaaS de Gestión Integral';
-    setSoftwareIdeaInput(initialIdea);
-    setPrompt(generateSoftwarePrompt(initialIdea));
-    setError(null);
-  };
-
-  // Cuando el usuario edita la idea específica en modo software
-  const handleSoftwareIdeaChange = (newIdea: string) => {
-    setSoftwareIdeaInput(newIdea);
-    setPrompt(generateSoftwarePrompt(newIdea));
-  };
-
-  // Desactivar modo software y volver a prompt libre
-  const handleResetToStandard = () => {
-    setIsSoftwareMode(false);
-    setPrompt('');
-    setSoftwareIdeaInput('');
-  };
-
-  useEffect(() => {
-    if (isSoftwareMode && softwareInputRef.current) {
-      softwareInputRef.current.focus();
-      softwareInputRef.current.select();
-    }
-  }, [isSoftwareMode]);
+  const selectedArch = ARCHITECTURE_OPTIONS.find((a) => a.id === architectureType) || ARCHITECTURE_OPTIONS[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (prompt.trim().length < 10) {
-      setError('Por favor introduce tu idea de software o alcance del proyecto.');
+    if (ideaText.trim().length < 5) {
+      setError('Por favor describe tu idea con al menos 5 caracteres.');
       return;
     }
 
     try {
       setIsGenerating(true);
       setError(null);
-      await onGenerate(prompt.trim());
-      setPrompt('');
-      setSoftwareIdeaInput('');
-      setIsSoftwareMode(false);
+      const fullPrompt = buildPromptForSubmission(architectureType, ideaText);
+      await onGenerate(fullPrompt);
+      setIdeaText('');
       onClose();
     } catch (err: any) {
       setError(
         err.message ||
-          'Error al invocar al Agente Organizador IA. Verifica que el backend esté en línea y conectado con Gemini.'
+          'Error al invocar al Agente Organizador IA. Asegúrate de que el backend esté activo y conectado con Gemini.'
       );
     } finally {
       setIsGenerating(false);
@@ -222,8 +210,8 @@ export const AiProjectCreationModal: React.FC<AiProjectCreationModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Agente Organizador IA"
-      subtitle="Estructura tableros completos por fases a partir de ideas o especificaciones de software"
-      maxWidth="2xl"
+      subtitle="Estructura tableros completos por fases a partir de ideas o especificaciones"
+      maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -233,131 +221,81 @@ export const AiProjectCreationModal: React.FC<AiProjectCreationModalProps> = ({
           </div>
         )}
 
-        {/* Botón Destacado: Idea (Software) */}
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-indigo-950/40 to-slate-900 border border-cyan-500/30 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 p-0.5 flex items-center justify-center">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Code2 className="w-4 h-4 text-cyan-400" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white tracking-tight">Plantilla Oficial AI-SDLC</span>
-                <span className="px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 text-[10px] font-semibold border border-cyan-500/30">
-                  Arquitectura
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Aplica el estándar de 5 fases para desarrollo riguroso de software.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleSelectIdeaSoftware}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
-              isSoftwareMode
-                ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 shadow-cyan-500/30'
-                : 'bg-gradient-to-r from-cyan-500 via-indigo-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 text-white shadow-indigo-500/20'
-            }`}
+        {/* Selector Desplegable: Tipo de Arquitectura */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Tipo de arquitectura</span>
+            </span>
+            <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              Procedimiento activo
+            </span>
+          </label>
+          <select
+            value={architectureType}
+            onChange={(e) => setArchitectureType(e.target.value as ArchitectureType)}
+            disabled={isGenerating}
+            className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all cursor-pointer font-medium"
           >
-            {isSoftwareMode ? (
-              <>
-                <CheckCircle2 className="w-3.5 h-3.5 text-slate-950" />
-                <span>Idea (Software) Activo</span>
-              </>
-            ) : (
-              <>
-                <Terminal className="w-3.5 h-3.5" />
-                <span>Idea (Software)</span>
-              </>
-            )}
-          </button>
+            {ARCHITECTURE_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id} className="bg-slate-950 text-white">
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-[11px] text-slate-400 mt-1.5 pl-1 leading-relaxed">
+            {selectedArch.description}
+          </p>
         </div>
 
-        {/* Campo de Idea cuando Modo Software está activo */}
-        {isSoftwareMode ? (
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-indigo-500/40 space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Terminal className="w-3.5 h-3.5" />
-                <span>¿Cuál es el software que vamos a desarrollar? *</span>
-              </label>
-              <button
-                type="button"
-                onClick={handleResetToStandard}
-                className="text-[11px] text-slate-400 hover:text-slate-200 underline cursor-pointer"
-              >
-                Volver a modo libre
-              </button>
-            </div>
-
-            <input
-              ref={softwareInputRef}
-              type="text"
-              value={softwareIdeaInput}
-              onChange={(e) => handleSoftwareIdeaChange(e.target.value)}
-              placeholder="Ej: Plataforma de telemedicina con videollamadas WebRTC, recetas digitales y pagos en línea"
-              disabled={isGenerating}
-              required
-              className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-400 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all font-medium"
-            />
-
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px] text-slate-400">
-                <span>Contexto inyectado automáticamente al Agente (AI-SDLC):</span>
-                <span className="text-emerald-400 font-mono">5 Fases Estándar Incluidas</span>
-              </div>
-              <textarea
-                rows={7}
-                readOnly
-                value={prompt}
-                className="w-full bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 text-[11px] text-slate-300 font-mono resize-none focus:outline-none cursor-default selection:bg-cyan-500 selection:text-slate-950"
-              />
-            </div>
-          </div>
-        ) : (
-          /* Campo Normal de Entrada */
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>Notas o alcance en bruto del proyecto *</span>
-              <span className="text-[11px] text-slate-400 font-normal">
-                Structured Outputs / Fases Automáticas
-              </span>
-            </label>
-            <textarea
-              rows={6}
-              required
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              disabled={isGenerating}
-              placeholder="Escribe tu idea de proyecto libremente, o pulsa arriba el botón 'Idea (Software)' para cargar la plantilla de ingeniería AI-SDLC..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none transition-all leading-relaxed"
-            />
-          </div>
-        )}
+        {/* Campo de Entrada de Idea (Sin mostrar el contexto inyectado) */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span>
+              {architectureType === 'software'
+                ? 'Idea o Requerimientos del Software *'
+                : 'Notas o alcance en bruto del proyecto *'}
+            </span>
+            <span className="text-[11px] text-slate-400 lowercase font-normal">
+              Structured Outputs
+            </span>
+          </label>
+          <textarea
+            rows={5}
+            required
+            value={ideaText}
+            onChange={(e) => setIdeaText(e.target.value)}
+            disabled={isGenerating}
+            placeholder={
+              architectureType === 'software'
+                ? 'Ejemplo: Plataforma SaaS para gestión de inventarios y facturación electrónica en tiempo real con pasarela de pagos, roles de usuario y reportes de analítica...'
+                : 'Ejemplo: Campaña de lanzamiento de nueva línea de productos con estrategia digital, eventos y alianzas comerciales...'
+            }
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none transition-all leading-relaxed"
+          />
+        </div>
 
         {/* Estado de generación activa */}
         {isGenerating && (
-          <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs flex items-center gap-3 animate-pulse">
-            <Bot className="w-5 h-5 text-cyan-400 animate-spin flex-shrink-0" />
+          <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs flex items-center gap-3 animate-pulse">
+            <Bot className="w-5 h-5 text-indigo-400 animate-spin flex-shrink-0" />
             <div>
               <p className="font-semibold text-white">
-                {isSoftwareMode
+                {architectureType === 'software'
                   ? 'Estructurando arquitectura de software bajo el estándar AI-SDLC...'
                   : 'Descomponiendo ideas con Structured Outputs...'}
               </p>
               <p className="text-slate-400 text-[11px]">
-                Generando tareas ordenadas, prioridades, fechas estimadas y fases técnicas en tu tablero.
+                Organizando fases técnicas, tareas ordenadas y prioridades en tu tablero.
               </p>
             </div>
           </div>
         )}
 
         {/* Acciones */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
           <Button
             type="button"
             variant="ghost"
@@ -374,11 +312,7 @@ export const AiProjectCreationModal: React.FC<AiProjectCreationModalProps> = ({
             isLoading={isGenerating}
             leftIcon={<Sparkles className="w-4 h-4" />}
           >
-            {isGenerating
-              ? 'Estructurando con IA...'
-              : isSoftwareMode
-              ? 'Generar Proyecto AI-SDLC'
-              : 'Generar Proyecto con IA'}
+            {isGenerating ? 'Estructurando con IA...' : 'Generar Proyecto con IA'}
           </Button>
         </div>
       </form>
