@@ -101,19 +101,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="grid grid-cols-2 gap-1.5 mt-2.5">
             <button
               onClick={onOpenAiModal}
-              className="h-9 px-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs sm:text-[13px] font-bold flex items-center justify-center gap-1.5 shadow-sm border border-transparent transition-all cursor-pointer"
+              className="h-9 w-full rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs sm:text-[13px] font-bold flex items-center justify-center gap-1.5 shadow-sm border border-transparent transition-all cursor-pointer leading-none"
               title="Crear un Proyecto / Tablero completo con IA"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Proyecto</span>
+              <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="leading-none">Proyecto</span>
             </button>
             <button
               onClick={onOpenManualModal}
-              className="btn-tarea h-9 px-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs sm:text-[13px] font-bold shadow-sm"
+              className="btn-tarea h-9 w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs sm:text-[13px] font-bold shadow-sm leading-none"
               title="Crear una Tarea manual puntual"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Tarea</span>
+              <Plus className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />
+              <span className="leading-none">Tarea</span>
             </button>
           </div>
 
