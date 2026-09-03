@@ -275,17 +275,17 @@ export function App() {
               <p className="text-xs text-slate-400 mb-6 leading-relaxed">
                 Este espacio de trabajo te pertenece exclusivamente a ti. Puedes crear un proyecto completo estructurado con IA o agregar tareas individuales.
               </p>
-              <div className="flex items-center justify-center gap-3">
+              <div className="flex items-center justify-center gap-3.5">
                 <button
                   onClick={() => setIsAiModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-indigo-500/25 cursor-pointer"
+                  className="h-11 px-5 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 border border-transparent cursor-pointer transition-all duration-200 hover:scale-[1.02]"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Crear Proyecto</span>
                 </button>
                 <button
                   onClick={() => setIsTaskModalOpen(true)}
-                  className="btn-tarea px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 cursor-pointer flex items-center gap-2 text-sm font-bold shadow-sm transition-all"
+                  className="btn-tarea h-11 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/80 cursor-pointer flex items-center justify-center gap-2 text-sm font-bold shadow-sm transition-all duration-200 hover:scale-[1.02]"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Crear Tarea</span>
