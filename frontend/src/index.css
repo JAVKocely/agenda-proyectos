@@ -76,6 +76,61 @@ html.light .border-slate-800\/90 {
   border-color: #e2e8f0 !important;
 }
 
+/* =========================================================
+   PALETA OFICIAL MODO CLARO PARA TABLEROS Y TABLAS (MONDAY STYLE)
+   ========================================================= */
+html.light .bg-slate-950\/20,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/50,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/80 {
+  background-color: #f8fafc !important;
+}
+
+html.light thead tr {
+  background-color: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+html.light thead th {
+  color: #334155 !important;
+  font-weight: 700 !important;
+  background-color: #f8fafc !important;
+}
+
+html.light tbody tr {
+  background-color: #ffffff !important;
+  border-color: #f1f5f9 !important;
+}
+
+html.light tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+html.light tfoot tr {
+  background-color: #f8fafc !important;
+  border-top-color: #e2e8f0 !important;
+}
+
+html.light tfoot td {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+/* Tareas y textos dentro de la tabla: negro/slate de alto contraste */
+html.light tbody td {
+  color: #0f172a !important;
+}
+
+html.light tbody td input {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+html.light .h-3.rounded-full.bg-slate-800 {
+  background-color: #e2e8f0 !important;
+}
+
 /* Tipografía general sobre fondos claros */
 html.light h1:not(button *),
 html.light h2:not(button *),
