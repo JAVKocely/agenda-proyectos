@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Table,
   Kanban,
@@ -6,6 +6,9 @@ import {
   Search,
   Star,
   LogOut,
+  ChevronDown,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import type { ProjectDetail } from '../../types/project';
 
@@ -19,6 +22,8 @@ interface TopbarProps {
   onSearchChange: (val: string) => void;
   currentUser: 'meli' | 'jhon';
   onLogout: () => void;
+  theme: 'dark' | 'light';
+  onToggleTheme: (theme: 'dark' | 'light') => void;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
@@ -29,8 +34,27 @@ export const Topbar: React.FC<TopbarProps> = ({
   onSearchChange,
   currentUser,
   onLogout,
+  theme,
+  onToggleTheme,
 }) => {
   const isMeli = currentUser === 'meli';
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar el menú al hacer clic afuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
 
   return (
     <div className="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md sticky top-0 z-20 px-6 pt-4 pb-0">
@@ -50,12 +74,17 @@ export const Topbar: React.FC<TopbarProps> = ({
           )}
         </div>
 
-        {/* Perfil de Usuario y Acciones */}
-        <div className="flex items-center gap-2.5">
-          {/* Badge del Usuario Activo */}
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800">
+        {/* Perfil de Usuario con Menú Desplegable */}
+        <div className="relative" ref={menuRef}>
+          {/* Botón Badge de Usuario Activo */}
+          <button
+            type="button"
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer shadow-sm group"
+            title="Abrir menú de usuario"
+          >
             <div
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-sm transition-transform group-hover:scale-105 ${
                 isMeli
                   ? 'bg-gradient-to-tr from-fuchsia-500 to-rose-500'
                   : 'bg-gradient-to-tr from-indigo-500 to-cyan-500'
@@ -66,16 +95,97 @@ export const Topbar: React.FC<TopbarProps> = ({
             <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
               {currentUser}
             </span>
-          </div>
-
-          <button
-            onClick={onLogout}
-            className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-400 border border-slate-800 text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5"
-            title="Cambiar de usuario"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Salir</span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                isUserMenuOpen ? 'rotate-180 text-white' : 'group-hover:text-slate-200'
+              }`}
+            />
           </button>
+
+          {/* Menú Desplegable al presionar el nombre */}
+          {isUserMenuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2.5 z-50 text-left animate-in fade-in slide-in-from-top-2">
+              {/* Header de Información de Usuario */}
+              <div className="flex items-center gap-3 p-2.5 pb-3 border-b border-slate-800/80 mb-2">
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md ${
+                    isMeli
+                      ? 'bg-gradient-to-tr from-fuchsia-500 to-rose-500 shadow-fuchsia-500/20'
+                      : 'bg-gradient-to-tr from-indigo-500 to-cyan-500 shadow-cyan-500/20'
+                  }`}
+                >
+                  {isMeli ? 'M' : 'J'}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white leading-tight uppercase tracking-wide truncate">
+                    {currentUser}
+                  </p>
+                  <span className="text-[11px] text-slate-400 font-medium">Consola Personal</span>
+                </div>
+              </div>
+
+              {/* Submenú: Selector de Modo Oscuro a Claro */}
+              <div className="p-1 mb-2">
+                <div className="flex items-center justify-between px-2 mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Apariencia
+                  </span>
+                  <span className="text-[10px] font-medium text-indigo-400">
+                    {theme === 'dark' ? 'Oscuro activo' : 'Claro activo'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-950/80 border border-slate-800/80 rounded-xl">
+                  {/* Opción Oscuro */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onToggleTheme('dark');
+                    }}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      theme === 'dark'
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                    }`}
+                  >
+                    <Moon className="w-3.5 h-3.5" />
+                    <span>Oscuro</span>
+                  </button>
+
+                  {/* Opción Claro */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onToggleTheme('light');
+                    }}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      theme === 'light'
+                        ? 'bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/30'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                    }`}
+                  >
+                    <Sun className="w-3.5 h-3.5" />
+                    <span>Claro</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Opción de Cambiar de Usuario */}
+              <div className="pt-1 border-t border-slate-800/80">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    onLogout();
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-rose-400 hover:bg-slate-800/60 transition-colors cursor-pointer text-left"
+                >
+                  <LogOut className="w-4 h-4 text-rose-400" />
+                  <span>Cambiar de Usuario / Salir</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
