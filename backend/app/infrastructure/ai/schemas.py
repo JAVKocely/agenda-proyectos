@@ -16,6 +16,10 @@ class AITaskPlanSchema(BaseModel):
         default="medium",
         description="Prioridad de la tarea según su urgencia o impacto en el proyecto"
     )
+    group_name: str = Field(
+        default="Fase 1: Preparación",
+        description="Fase o grupo temático al que pertenece la tarea (ej: 'Estrategia', 'Desarrollo', 'Lanzamiento')"
+    )
     order: int = Field(
         ...,
         description="Secuencia lógica u orden cronológico de ejecución (comenzando en 1)",

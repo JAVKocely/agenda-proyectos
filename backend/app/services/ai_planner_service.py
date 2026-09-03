@@ -46,6 +46,7 @@ class AIPlannerService:
                 "description": task.description,
                 "priority": task.priority,
                 "order": task.order,
+                "group_name": getattr(task, "group_name", "Fase 1: Preparación") or "Fase 1: Preparación",
                 "status": "pending"
             }
             for task in plan.tasks

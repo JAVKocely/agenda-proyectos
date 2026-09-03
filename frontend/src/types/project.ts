@@ -1,6 +1,6 @@
 export type ProjectStatus = 'active' | 'paused' | 'completed';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
-export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+export type TaskStatus = 'pending' | 'in_progress' | 'stuck' | 'completed';
 
 export interface Task {
   id: string;
@@ -9,6 +9,7 @@ export interface Task {
   description?: string | null;
   priority: TaskPriority;
   status: TaskStatus;
+  group_name?: string | null;
   order: number;
   due_date?: string | null;
   created_at: string;
@@ -54,6 +55,7 @@ export interface TaskCreatePayload {
   description?: string;
   priority?: TaskPriority;
   status?: TaskStatus;
+  group_name?: string;
   order?: number;
   due_date?: string;
 }
@@ -63,6 +65,7 @@ export interface TaskUpdatePayload {
   description?: string;
   priority?: TaskPriority;
   status?: TaskStatus;
+  group_name?: string;
   order?: number;
   due_date?: string;
 }
