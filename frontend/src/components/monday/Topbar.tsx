@@ -79,41 +79,48 @@ export const Topbar: React.FC<TopbarProps> = ({
 
   return (
     <div className="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md sticky top-0 z-20 px-6 pt-4 pb-0">
-      {/* Título y Acciones Principales */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-            <span>{project ? project.title : 'Selecciona un Tablero'}</span>
-            {project && (
-              <span
-                className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
-                  isTaskItem(project)
-                    ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-xs shadow-cyan-500/20'
-                    : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40 shadow-xs shadow-indigo-500/20'
-                }`}
-              >
-                {isTaskItem(project) ? 'Tarea' : 'Proyecto'}
-              </span>
-            )}
+      {/* Título y Acciones Principales - Fila Única y Estable */}
+      <div className="flex items-center justify-between gap-3 mb-3 min-w-0">
+        {/* Lado Izquierdo: Título con truncate + Badge + Favorito */}
+        <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+          <h1
+            className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2 min-w-0"
+            title={project ? project.title : ''}
+          >
+            <span className="truncate">{project ? project.title : 'Selecciona un Tablero'}</span>
           </h1>
           {project && (
+            <span
+              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border uppercase tracking-wider flex-shrink-0 ${
+                isTaskItem(project)
+                  ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40 shadow-xs shadow-cyan-500/20'
+                  : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40 shadow-xs shadow-indigo-500/20'
+              }`}
+            >
+              {isTaskItem(project) ? 'Tarea' : 'Proyecto'}
+            </span>
+          )}
+          {project && (
             <button
-              className="text-slate-400 hover:text-amber-400 transition-colors p-1 cursor-pointer"
+              className="text-slate-400 hover:text-amber-400 transition-colors p-1 cursor-pointer flex-shrink-0"
               title="Favorito"
             >
               <Star className="w-4 h-4" />
             </button>
           )}
+        </div>
 
-          {/* Dos Botones Alargados Pequeños para Filtrar Proyectos y Tareas */}
-          <div className="flex items-center gap-2 ml-1 sm:ml-3">
+        {/* Lado Derecho: Filtros Proyectos / Tareas + Perfil de Usuario (SIEMPRE Fijo a la Derecha) */}
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          {/* Botones de Filtro Proyectos / Tareas */}
+          <div className="flex items-center gap-1.5">
             {/* Botón Proyectos (Violeta / Índigo) */}
             <button
               type="button"
               onClick={() =>
                 onFilterTypeChange(filterType === 'projects' ? 'all' : 'projects')
               }
-              className={`h-7 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+              className={`h-7 px-2.5 sm:px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
                 filterType === 'projects'
                   ? 'btn-proyecto bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-indigo-400/60 shadow-md shadow-indigo-500/40'
                   : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/80 hover:border-indigo-500/50 hover:text-indigo-300'
@@ -125,7 +132,7 @@ export const Topbar: React.FC<TopbarProps> = ({
               }
             >
               <FolderKanban className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Proyectos</span>
+              <span className="hidden sm:inline">Proyectos</span>
             </button>
 
             {/* Botón Tareas (Cyan / Turquesa) */}
@@ -134,7 +141,7 @@ export const Topbar: React.FC<TopbarProps> = ({
               onClick={() =>
                 onFilterTypeChange(filterType === 'tasks' ? 'all' : 'tasks')
               }
-              className={`h-7 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+              className={`h-7 px-2.5 sm:px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
                 filterType === 'tasks'
                   ? 'btn-tarea bg-gradient-to-r from-cyan-500 to-teal-500 text-white border-cyan-400/60 shadow-md shadow-cyan-500/40'
                   : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-slate-700/80 hover:border-cyan-500/50 hover:text-cyan-300'
@@ -146,7 +153,7 @@ export const Topbar: React.FC<TopbarProps> = ({
               }
             >
               <CheckSquare className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Tareas</span>
+              <span className="hidden sm:inline">Tareas</span>
               {project && project.tasks.length > 0 && (
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
@@ -160,10 +167,10 @@ export const Topbar: React.FC<TopbarProps> = ({
               )}
             </button>
           </div>
-        </div>
 
-        {/* Perfil de Usuario con Menú Desplegable */}
-        <div className="relative" ref={menuRef}>
+          {/* Perfil de Usuario con Menú Desplegable (SIEMPRE a la extrema derecha) */}
+          <div className="relative flex-shrink-0" ref={menuRef}>
+
           {/* Botón Badge de Usuario Activo */}
           <button
             type="button"
@@ -336,6 +343,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           )}
         </div>
       </div>
+    </div>
 
       {/* Tabs de Vistas estilo Monday.com */}
       <div className="flex items-center justify-between gap-4 overflow-x-auto">

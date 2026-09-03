@@ -64,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`h-screen sticky top-0 flex flex-col bg-slate-950 border-r border-slate-800 transition-all duration-300 z-30 ${
+      className={`h-screen sticky top-0 flex-shrink-0 flex flex-col bg-slate-950 border-r border-slate-800 transition-all duration-300 z-30 ${
         isCollapsed ? 'w-16' : 'w-64'
       }`}
     >
@@ -248,12 +248,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {!isCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1.5">
-                    <p className="truncate font-semibold">{proj.title}</p>
+                  <p className="truncate font-semibold text-xs leading-tight mb-0.5">{proj.title}</p>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className={isSelected ? 'text-white/90 font-medium' : 'text-slate-400'}>
+                      {proj.completed_tasks}/{proj.total_tasks} ({proj.progress_percentage}%)
+                    </span>
                     <span
-                      className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded uppercase tracking-wider flex-shrink-0 ${
+                      className={`text-[8.5px] font-extrabold px-1.5 py-0.2 rounded uppercase tracking-wider ${
                         isSelected
-                          ? 'bg-black/20 text-white'
+                          ? 'bg-black/25 text-white'
                           : isTask
                           ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
                           : 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
@@ -262,9 +265,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       {isTask ? 'Tarea' : 'Proyecto'}
                     </span>
                   </div>
-                  <p className={`text-[10px] ${isSelected ? 'text-white/90 font-medium' : 'text-slate-400'}`}>
-                    {proj.completed_tasks}/{proj.total_tasks} ({proj.progress_percentage}%)
-                  </p>
                 </div>
               )}
             </button>
