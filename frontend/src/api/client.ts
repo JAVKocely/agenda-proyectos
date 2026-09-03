@@ -1,4 +1,13 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+function getBaseUrl(): string {
+  let url = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1').trim();
+  url = url.replace(/\/+$/, ''); // eliminar barras finales
+  if (!url.endsWith('/api/v1')) {
+    url = `${url}/api/v1`;
+  }
+  return url;
+}
+
+const API_BASE_URL = getBaseUrl();
 
 export class ApiError extends Error {
   status: number;

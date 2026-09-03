@@ -51,8 +51,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registrar enrutador v1
+# Registrar enrutador v1 y en la raíz para máxima compatibilidad
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(api_router)
 
 
 @app.get("/health", tags=["Sistema"])
