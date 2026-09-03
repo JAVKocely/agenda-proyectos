@@ -6,17 +6,16 @@ import { KanbanView } from './components/monday/KanbanView';
 import { TimelineView } from './components/monday/TimelineView';
 import { LoginScreen, type UserId } from './components/auth/LoginScreen';
 import { AiProjectCreationModal } from './components/ai/AiProjectCreationModal';
-import { ManualProjectModal } from './components/dashboard/ManualProjectModal';
+import { TaskModal } from './components/dashboard/TaskModal';
 import { projectsApi } from './api/projectsApi';
 import type {
   ProjectSummary,
   ProjectDetail,
   TaskStatus,
   TaskPriority,
-  ProjectCreatePayload,
   TaskCreatePayload,
 } from './types/project';
-import { AlertCircle, Loader2, Sparkles, FolderKanban } from 'lucide-react';
+import { AlertCircle, Loader2, Sparkles, FolderKanban, Plus } from 'lucide-react';
 
 export function App() {
   // Estado del usuario activo ('meli' | 'jhon' | null)
@@ -37,7 +36,7 @@ export function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
-  const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState<boolean>(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false);
@@ -52,7 +51,6 @@ export function App() {
       const data = await projectsApi.getProjects();
       setProjects(data);
 
-      // Si no hay proyecto seleccionado o el seleccionado no está en la lista del usuario actual, seleccionar el primero
       if (data.length > 0) {
         setSelectedProjectId((prev) => {
           const exists = data.some((p) => p.id === prev);
@@ -125,19 +123,35 @@ export function App() {
   }, [selectedProjectDetail, boardSearch]);
 
   // Acciones de Proyectos
-  const handleCreateProjectManual = async (payload: ProjectCreatePayload) => {
-    const created = await projectsApi.createProject(payload);
-    await loadProjects();
-    setSelectedProjectId(created.id);
-  };
-
   const handleGenerateWithAI = async (prompt: string) => {
     const generated = await projectsApi.generateProjectWithAI({ prompt });
     await loadProjects();
     setSelectedProjectId(generated.id);
   };
 
-  // Acciones de Tareas (Edición Inline y Celdas de Monday)
+  // Acciones de Tareas
+  const handleAddTaskFromModal = async (projectId: string, payload: TaskCreatePayload) => {
+    await projectsApi.addTask(projectId, payload);
+    if (selectedProjectId === projectId) {
+      await loadProjectDetail(projectId);
+    }
+    projectsApi.getProjects().then(setProjects);
+  };
+
+  const handleCreateDefaultProjectAndTask = async (payload: TaskCreatePayload) => {
+    const isMeli = currentUser === 'meli';
+    const defaultTitle = isMeli ? 'Tablero de Meli' : 'Tablero de Jhon';
+    const newProj = await projectsApi.createProject({
+      title: defaultTitle,
+      description: 'Espacio de trabajo general',
+      status: 'active',
+      estimated_completion_days: 14,
+    });
+    await projectsApi.addTask(newProj.id, payload);
+    await loadProjects();
+    setSelectedProjectId(newProj.id);
+  };
+
   const handleUpdateTask = async (
     taskId: string,
     payload: { status?: TaskStatus; priority?: TaskPriority; title?: string }
@@ -158,7 +172,7 @@ export function App() {
     }
   };
 
-  const handleAddTask = async (payload: TaskCreatePayload) => {
+  const handleAddTaskInline = async (payload: TaskCreatePayload) => {
     if (!selectedProjectId) return;
     await projectsApi.addTask(selectedProjectId, payload);
     await loadProjectDetail(selectedProjectId);
@@ -178,7 +192,7 @@ export function App() {
         selectedProjectId={selectedProjectId}
         onSelectProject={(id) => setSelectedProjectId(id)}
         onOpenAiModal={() => setIsAiModalOpen(true)}
-        onOpenManualModal={() => setIsManualModalOpen(true)}
+        onOpenManualModal={() => setIsTaskModalOpen(true)}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         currentUser={currentUser}
@@ -187,7 +201,7 @@ export function App() {
 
       {/* Área Principal de Trabajo */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-        {/* Barra Superior con Selector de Vistas y Perfil */}
+        {/* Barra Superior */}
         <Topbar
           project={selectedProjectDetail}
           activeView={activeView}
@@ -233,7 +247,7 @@ export function App() {
                 Consola privada de {currentUser === 'meli' ? 'Meli' : 'Jhon'}
               </h2>
               <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-                Este espacio de trabajo te pertenece exclusivamente a ti. Los proyectos creados aquí son independientes y privados.
+                Este espacio de trabajo te pertenece exclusivamente a ti. Puedes crear un proyecto completo estructurado con IA o agregar tareas individuales.
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
@@ -241,13 +255,14 @@ export function App() {
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-indigo-500/25 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Crear con IA</span>
+                  <span>Crear Proyecto</span>
                 </button>
                 <button
-                  onClick={() => setIsManualModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 cursor-pointer"
+                  onClick={() => setIsTaskModalOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 cursor-pointer flex items-center gap-1.5"
                 >
-                  Crear Manual
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Crear Tarea</span>
                 </button>
               </div>
             </div>
@@ -264,7 +279,7 @@ export function App() {
                   tasks={filteredTasks}
                   onUpdateTask={handleUpdateTask}
                   onDeleteTask={handleDeleteTask}
-                  onAddTask={handleAddTask}
+                  onAddTask={handleAddTaskInline}
                 />
               )}
 
@@ -273,7 +288,7 @@ export function App() {
                   tasks={filteredTasks}
                   onUpdateTask={handleUpdateTask}
                   onDeleteTask={handleDeleteTask}
-                  onAddTask={handleAddTask}
+                  onAddTask={handleAddTaskInline}
                 />
               )}
 
@@ -289,17 +304,21 @@ export function App() {
         </div>
       </div>
 
-      {/* Modales */}
+      {/* Modal de Creación de Proyecto con IA */}
       <AiProjectCreationModal
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
         onGenerate={handleGenerateWithAI}
       />
 
-      <ManualProjectModal
-        isOpen={isManualModalOpen}
-        onClose={() => setIsManualModalOpen(false)}
-        onCreate={handleCreateProjectManual}
+      {/* Modal de Creación de Tarea Puntual (Título: Tarea) */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        projects={projects}
+        selectedProjectId={selectedProjectId}
+        onAddTask={handleAddTaskFromModal}
+        onCreateDefaultProjectAndTask={handleCreateDefaultProjectAndTask}
       />
     </div>
   );
