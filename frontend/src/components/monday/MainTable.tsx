@@ -5,7 +5,6 @@ import {
   Plus,
   Trash2,
   Calendar,
-  User,
   Check,
   Clock,
 } from 'lucide-react';
@@ -14,13 +13,16 @@ import type {
   TaskStatus,
   TaskPriority,
   TaskCreatePayload,
+  UserProfile,
 } from '../../types/project';
 import { StatusCell } from './StatusCell';
 import { PriorityCell } from './PriorityCell';
+import { ResponsibleCell } from './ResponsibleCell';
 import { formatDate } from '../../utils/dateUtils';
 
 interface MainTableProps {
   tasks: Task[];
+  users?: UserProfile[];
   onUpdateTask: (
     taskId: string,
     payload: {
@@ -29,6 +31,7 @@ interface MainTableProps {
       title?: string;
       due_date?: string;
       estimated_duration?: string;
+      assigned_to?: string | null;
     }
   ) => void;
   onDeleteTask: (taskId: string) => void;
@@ -46,6 +49,7 @@ const GROUP_COLORS = [
 
 export const MainTable: React.FC<MainTableProps> = ({
   tasks,
+  users = [],
   onUpdateTask,
   onDeleteTask,
   onAddTask,
@@ -261,11 +265,15 @@ export const MainTable: React.FC<MainTableProps> = ({
                             )}
                           </td>
 
-                          {/* Avatar / Persona asignada */}
+                          {/* Avatar / Persona asignada interactiva con desplegable */}
                           <td className="px-3 py-2.5 text-center">
-                            <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                              <User className="w-3.5 h-3.5" />
-                            </div>
+                            <ResponsibleCell
+                              assignedTo={task.assigned_to}
+                              users={users}
+                              onChange={(newAssignee) =>
+                                onUpdateTask(task.id, { assigned_to: newAssignee })
+                              }
+                            />
                           </td>
 
                           {/* Celda de Estado tipo Monday */}

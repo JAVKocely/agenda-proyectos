@@ -10,6 +10,7 @@ class TaskCreateRequest(BaseModel):
     status: Literal["pending", "in_progress", "stuck", "completed"] = "pending"
     group_name: Optional[str] = "Fase Principal"
     estimated_duration: Optional[str] = "1 día"
+    assigned_to: Optional[str] = None
     order: Optional[int] = Field(default=None, ge=1)
     due_date: Optional[datetime] = None
 
@@ -21,6 +22,7 @@ class TaskUpdateRequest(BaseModel):
     status: Optional[Literal["pending", "in_progress", "stuck", "completed"]] = None
     group_name: Optional[str] = None
     estimated_duration: Optional[str] = None
+    assigned_to: Optional[str] = None
     order: Optional[int] = Field(default=None, ge=1)
     due_date: Optional[datetime] = None
 
@@ -34,6 +36,7 @@ class TaskResponse(BaseModel):
     status: str
     group_name: Optional[str] = "Fase Principal"
     estimated_duration: Optional[str] = "1 día"
+    assigned_to: Optional[str] = None
     order: int
     due_date: Optional[datetime] = None
     created_at: datetime

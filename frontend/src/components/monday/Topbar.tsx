@@ -11,8 +11,11 @@ import {
   Moon,
   FolderKanban,
   CheckSquare,
+  Users,
+  UserPlus,
 } from 'lucide-react';
-import type { ProjectDetail } from '../../types/project';
+import type { ProjectDetail, UserProfile } from '../../types/project';
+import { getUserGradient } from './ResponsibleCell';
 
 export type ActiveView = 'table' | 'kanban' | 'timeline';
 
@@ -24,6 +27,9 @@ interface TopbarProps {
   onSearchChange: (val: string) => void;
   filterType: 'all' | 'projects' | 'tasks';
   onFilterTypeChange: (type: 'all' | 'projects' | 'tasks') => void;
+  users?: UserProfile[];
+  onSwitchUser?: (userId: string) => void;
+  onOpenCreateUserModal?: () => void;
   currentUser: string;
   onLogout: () => void;
   theme: 'dark' | 'light';
@@ -38,6 +44,9 @@ export const Topbar: React.FC<TopbarProps> = ({
   onSearchChange,
   filterType,
   onFilterTypeChange,
+  users = [],
+  onSwitchUser,
+  onOpenCreateUserModal,
   currentUser,
   onLogout,
   theme,
@@ -181,6 +190,74 @@ export const Topbar: React.FC<TopbarProps> = ({
                   </p>
                   <span className="text-[11px] text-slate-400 font-medium">Consola Personal</span>
                 </div>
+              </div>
+
+              {/* Sección: Miembros Registrados en la Base de Datos */}
+              <div className="p-1 mb-2 border-b border-slate-800/80 pb-2">
+                <div className="flex items-center justify-between px-2 mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Users className="w-3 h-3 text-indigo-400" />
+                    <span>Miembros Registrados ({users.length})</span>
+                  </span>
+                </div>
+
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {users.map((u) => {
+                    const isCurrent = u.id.toLowerCase() === currentUser.toLowerCase();
+                    const grad = getUserGradient(u);
+                    const init = (u.name.charAt(0) || 'U').toUpperCase();
+
+                    return (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => {
+                          if (!isCurrent && onSwitchUser) {
+                            onSwitchUser(u.id);
+                            setIsUserMenuOpen(false);
+                          }
+                        }}
+                        className={`w-full flex items-center justify-between px-2 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                          isCurrent
+                            ? 'bg-indigo-600/20 border border-indigo-500/40 text-white'
+                            : 'hover:bg-slate-800/80 text-slate-300 hover:text-white'
+                        }`}
+                        title={isCurrent ? 'Usuario activo actualmente' : `Cambiar a consola de ${u.name}`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-sm flex-shrink-0 ${grad}`}>
+                            {init}
+                          </div>
+                          <span className="truncate">{u.name}</span>
+                        </div>
+                        {isCurrent ? (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-500/30 text-indigo-300 font-bold">
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 hover:text-indigo-400">
+                            Entrar →
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Botón para Registrar Nuevo Miembro directamente */}
+                {onOpenCreateUserModal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      onOpenCreateUserModal();
+                    }}
+                    className="w-full mt-2 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 border border-indigo-500/30 transition-all cursor-pointer"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>+ Registrar Nuevo Miembro</span>
+                  </button>
+                )}
               </div>
 
               {/* Submenú: Selector de Modo Oscuro a Claro */}

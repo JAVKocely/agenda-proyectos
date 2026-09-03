@@ -8,12 +8,14 @@ import { LoginScreen } from './components/auth/LoginScreen';
 import { AiProjectCreationModal } from './components/ai/AiProjectCreationModal';
 import { TaskModal } from './components/dashboard/TaskModal';
 import { ArchiveConfirmationModal } from './components/dashboard/ArchiveConfirmationModal';
+import { CreateUserModal } from './components/auth/CreateUserModal';
 import { projectsApi } from './api/projectsApi';
 import type {
   ProjectSummary,
   ProjectDetail,
   TaskCreatePayload,
   TaskUpdatePayload,
+  UserProfile,
 } from './types/project';
 import { AlertCircle, Loader2, Sparkles, FolderKanban, Plus, Archive, RotateCcw } from 'lucide-react';
 
@@ -33,8 +35,10 @@ export function App() {
 
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState<boolean>(false);
+  const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState<boolean>(false);
   const [projectToArchivePrompt, setProjectToArchivePrompt] = useState<ProjectDetail | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'projects' | 'tasks'>('all');
+  const [users, setUsers] = useState<UserProfile[]>([]);
 
   // Estado del tema ('dark' | 'light')
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -93,6 +97,29 @@ export function App() {
       loadProjects();
     }
   }, [currentUser, loadProjects]);
+
+  // Cargar lista de miembros registrados en la base de datos
+  const loadUsers = useCallback(async () => {
+    try {
+      const data = await projectsApi.getUsers();
+      setUsers(data);
+    } catch (err: any) {
+      console.error('Error al cargar lista de usuarios:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  const handleUserCreated = (newUser: UserProfile) => {
+    setUsers((prev) => {
+      const exists = prev.some((u) => u.id.toLowerCase() === newUser.id.toLowerCase());
+      return exists ? prev : [...prev, newUser];
+    });
+    setIsCreateUserModalOpen(false);
+    handleSelectUser(newUser.id);
+  };
 
   // Cargar detalle del proyecto seleccionado
   const loadProjectDetail = useCallback(async (id: string) => {
@@ -277,6 +304,9 @@ export function App() {
           onSearchChange={setBoardSearch}
           filterType={filterType}
           onFilterTypeChange={setFilterType}
+          users={users}
+          onSwitchUser={handleSelectUser}
+          onOpenCreateUserModal={() => setIsCreateUserModalOpen(true)}
           currentUser={currentUser}
           onLogout={handleLogout}
           theme={theme}
@@ -375,6 +405,7 @@ export function App() {
               {activeView === 'table' && (
                 <MainTable
                   tasks={filteredTasks}
+                  users={users}
                   onUpdateTask={handleUpdateTask}
                   onDeleteTask={handleDeleteTask}
                   onAddTask={handleAddTaskInline}
@@ -425,6 +456,13 @@ export function App() {
         project={projectToArchivePrompt}
         onClose={() => setProjectToArchivePrompt(null)}
         onConfirmArchive={handleConfirmArchive}
+      />
+
+      {/* Modal para Crear/Registrar un Nuevo Miembro */}
+      <CreateUserModal
+        isOpen={isCreateUserModalOpen}
+        onClose={() => setIsCreateUserModalOpen(false)}
+        onUserCreated={handleUserCreated}
       />
     </div>
   );

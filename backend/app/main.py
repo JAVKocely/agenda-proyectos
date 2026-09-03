@@ -29,6 +29,7 @@ def run_auto_migrations():
                 conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS user_id VARCHAR(50) DEFAULT 'meli';"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects (user_id);"))
                 conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS estimated_duration VARCHAR(50) DEFAULT '1 día';"))
+                conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assigned_to VARCHAR(50);"))
                 conn.execute(text("""
                     CREATE TABLE IF NOT EXISTS users (
                         id VARCHAR(50) PRIMARY KEY,
@@ -44,7 +45,7 @@ def run_auto_migrations():
                         ('jhon', 'JHON', 'cyan')
                     ON CONFLICT (id) DO NOTHING;
                 """))
-                logger.info("Migración automática: columna user_id, tasks.estimated_duration y tabla users verificadas en PostgreSQL.")
+                logger.info("Migración automática: columna user_id, tasks.estimated_duration, tasks.assigned_to y tabla users verificadas en PostgreSQL.")
             else:
                 # Para SQLite local
                 try:
@@ -53,6 +54,10 @@ def run_auto_migrations():
                     pass  # Columna ya existe
                 try:
                     conn.execute(text("ALTER TABLE tasks ADD COLUMN estimated_duration VARCHAR(50) DEFAULT '1 día';"))
+                except Exception:
+                    pass
+                try:
+                    conn.execute(text("ALTER TABLE tasks ADD COLUMN assigned_to VARCHAR(50);"))
                 except Exception:
                     pass
                 try:

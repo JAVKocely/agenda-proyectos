@@ -71,6 +71,7 @@ class TaskModel(Base):
     order = Column(Integer, nullable=False, default=0)
     group_name = Column(String(100), nullable=True, default="Fase Principal")
     estimated_duration = Column(String(50), nullable=True, default="1 día")
+    assigned_to = Column(String(50), nullable=True, default=None)
     due_date = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=utc_now)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utc_now, onupdate=utc_now)
