@@ -76,29 +76,61 @@ html.light .border-slate-800\/90 {
   border-color: #e2e8f0 !important;
 }
 
-/* Tipografía y Textos */
-html.light .text-white {
+/* Tipografía general sobre fondos claros */
+html.light h1:not(button *),
+html.light h2:not(button *),
+html.light h3:not(button *),
+html.light p:not(button *),
+html.light td:not([class*="bg-"] *),
+html.light th {
   color: #0f172a !important;
 }
 
-html.light .text-slate-100 {
+html.light .text-slate-100:not(button *):not([class*="bg-"] *) {
   color: #0f172a !important;
 }
 
-html.light .text-slate-200 {
+html.light .text-slate-200:not(button *):not([class*="bg-"] *) {
   color: #1e293b !important;
 }
 
-html.light .text-slate-300 {
+html.light .text-slate-300:not(button *):not([class*="bg-"] *) {
   color: #334155 !important;
 }
 
-html.light .text-slate-400 {
+html.light .text-slate-400:not(button *):not([class*="bg-"] *) {
   color: #64748b !important;
 }
 
-html.light .text-slate-500 {
+html.light .text-slate-500:not(button *):not([class*="bg-"] *) {
   color: #94a3b8 !important;
+}
+
+/* =========================================================
+   REGLA ESTRICTA: Botones morados, violetas, índigo y de acción
+   SIEMPRE con texto blanco (#ffffff) en Modo Claro
+   ========================================================= */
+html.light button.bg-indigo-600,
+html.light button[class*="bg-indigo"],
+html.light button[class*="from-violet"],
+html.light button[class*="from-indigo"],
+html.light button[class*="from-fuchsia"],
+html.light button[class*="bg-violet"],
+html.light button[class*="bg-gradient"],
+html.light .bg-indigo-600,
+html.light [class*="from-violet-600"],
+html.light [class*="from-indigo-600"],
+html.light button.bg-indigo-600 *,
+html.light button[class*="bg-indigo"] *,
+html.light button[class*="from-violet"] *,
+html.light button[class*="from-indigo"] *,
+html.light button[class*="from-fuchsia"] *,
+html.light button[class*="bg-violet"] *,
+html.light button[class*="bg-gradient"] *,
+html.light .bg-indigo-600 *,
+html.light [class*="from-violet-600"] *,
+html.light [class*="from-indigo-600"] * {
+  color: #ffffff !important;
 }
 
 /* Estados Hover */
