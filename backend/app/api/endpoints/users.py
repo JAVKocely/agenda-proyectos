@@ -64,3 +64,35 @@ def create_user(payload: UserCreateRequest, db: Session = Depends(get_db)):
         color=payload.color or "indigo"
     )
     return created
+
+
+@router.delete("/{user_id}")
+def delete_user(user_id: str, db: Session = Depends(get_db)):
+    """
+    Elimina un usuario y sus proyectos asociados.
+    Los usuarios del sistema (Meli y Jhon) no pueden ser eliminados.
+    """
+    if user_id.lower() in ("meli", "jhon"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Los usuarios del sistema (Meli y Jhon) no pueden ser eliminados."
+        )
+
+    repo = UserRepository(db)
+    user = repo.get_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+
+    # Eliminar proyectos y tareas del usuario
+    from app.infrastructure.db.repositories import ProjectRepository
+    proj_repo = ProjectRepository(db)
+    user_projects = proj_repo.get_all(user_id=user_id)
+    for p in user_projects:
+        proj_repo.delete(p.id)
+
+    db.delete(user)
+    db.commit()
+    return {"detail": f"Usuario '{user.name}' eliminado exitosamente."}

@@ -24,6 +24,12 @@ export const projectsApi = {
     });
   },
 
+  async deleteUser(userId: string): Promise<{ detail: string }> {
+    return request<{ detail: string }>(`/users/${userId}`, {
+      method: 'DELETE',
+    });
+  },
+
   // Proyectos
   async getProjects(status?: string, search?: string): Promise<ProjectSummary[]> {
     const params = new URLSearchParams();

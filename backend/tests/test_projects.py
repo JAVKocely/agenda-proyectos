@@ -179,3 +179,12 @@ def test_user_creation_and_dynamic_isolation(client):
     # 5. Jhon o Meli no pueden ver el proyecto de Carlos
     jhon_list = client.get("/api/v1/projects", headers={"X-User-Id": "jhon"}).json()
     assert carlos_proj_id not in [p["id"] for p in jhon_list]
+
+    # 6. Intentar eliminar a meli o jhon debe arrojar error 400
+    assert client.delete("/api/v1/users/meli").status_code == 400
+    assert client.delete("/api/v1/users/jhon").status_code == 400
+
+    # 7. Eliminar usuario Carlos y verificar cascada
+    del_res = client.delete(f"/api/v1/users/{carlos_id}")
+    assert del_res.status_code == 200
+    assert client.get(f"/api/v1/projects/{carlos_proj_id}").status_code == 404

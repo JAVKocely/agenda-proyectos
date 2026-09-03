@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowRight, UserPlus, Sparkles } from 'lucide-react';
+import { ShieldCheck, ArrowRight, UserPlus, Sparkles, Trash2 } from 'lucide-react';
 import { projectsApi } from '../../api/projectsApi';
 import { CreateUserModal, COLOR_THEMES } from './CreateUserModal';
 import type { UserProfile } from '../../types/project';
@@ -16,6 +16,19 @@ const DEFAULT_USERS: UserProfile[] = [
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
   const [users, setUsers] = useState<UserProfile[]>(DEFAULT_USERS);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleDeleteUser = async (e: React.MouseEvent, user: UserProfile) => {
+    e.stopPropagation();
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar al usuario "${user.name}" y todos sus proyectos?`)) {
+      return;
+    }
+    try {
+      await projectsApi.deleteUser(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+    } catch (err: any) {
+      alert(err.message || 'Error al eliminar usuario');
+    }
+  };
 
   // Cargar usuarios desde la base de datos
   useEffect(() => {
@@ -96,6 +109,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSelectUser }) => {
                 onClick={() => onSelectUser(user.id)}
                 className="group relative bg-gradient-to-b from-slate-900/80 to-slate-950 border border-slate-800 hover:border-slate-700 rounded-3xl p-7 transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer flex flex-col items-center text-center"
               >
+                {/* Botón para eliminar usuario personalizado */}
+                {user.id !== 'meli' && user.id !== 'jhon' && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteUser(e, user)}
+                    className="absolute top-4 right-4 p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                    title={`Eliminar usuario ${user.name}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+
                 {/* Avatar con gradiente personalizado */}
                 <div className={`w-20 h-20 rounded-full bg-gradient-to-tr ${theme.gradient} p-1 mb-4 shadow-xl transition-transform group-hover:scale-105`}>
                   <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-white font-bold text-2xl">
