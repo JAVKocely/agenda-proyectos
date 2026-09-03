@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 # Modelos oficiales vigentes y recomendados por Google Gemini API
 SUPPORTED_GEMINI_MODELS = [
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
     "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.5-flash-lite",
 ]
 
 
@@ -32,9 +32,9 @@ class GeminiAIClient(AIClientInterface):
     def __init__(self, api_key: str = "", model_name: str = ""):
         self.api_key = api_key or settings.GEMINI_API_KEY
         raw_model = model_name or settings.GEMINI_MODEL
-        # Normalizar automáticamente modelos deprecados (como 1.5 o nombres antiguos)
-        if not raw_model or "1.5" in raw_model or "3.6" in raw_model:
-            raw_model = "gemini-2.5-flash"
+        # Normalizar automáticamente modelos deprecados o nombres antiguos
+        if not raw_model or any(k in raw_model for k in ["1.5", "2.0", "3.6"]):
+            raw_model = "gemini-3.5-flash"
         self.model_name = raw_model
 
         if self.api_key:
@@ -57,7 +57,7 @@ class GeminiAIClient(AIClientInterface):
             if m not in candidate_models:
                 candidate_models.append(m)
 
-        last_error = None
+        errors = []
 
         for model in candidate_models:
             try:
@@ -86,12 +86,12 @@ class GeminiAIClient(AIClientInterface):
             except Exception as e:
                 err_str = str(e)
                 logger.warning("Fallo al invocar modelo %s: %s", model, err_str)
-                last_error = e
-                # Probar con el siguiente modelo de respaldo (503 alta demanda, 429 cuota, etc.)
+                errors.append(f"[{model}]: {err_str}")
                 continue
 
-        if last_error:
-            logger.error("Todos los modelos candidatos de Gemini fallaron: %s", str(last_error))
-            raise RuntimeError(f"Fallo en llamada a Gemini API: {str(last_error)}") from last_error
+        if errors:
+            all_errs = " | ".join(errors)
+            logger.error("Todos los modelos candidatos de Gemini fallaron: %s", all_errs)
+            raise RuntimeError(f"Fallo en llamada a Gemini API: {all_errs}")
 
         raise RuntimeError("No se pudo generar el plan del proyecto con Gemini.")
